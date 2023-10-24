@@ -1,10 +1,10 @@
 # Version for early October "big pilot"
 
 # Load functions
-source("fn_data.R")
-source("fn_true_dist.R")
-source("fn_plot.R")
-source("fn_coverage.R")
+source("functions\fn_data.R")
+source("functions\fn_true_dist.R")
+source("functions\fn_plot.R")
+source("functions\fn_coverage.R")
 
 
 # Test data set with slope .5
