@@ -1,6 +1,4 @@
-
-
-# functions to draw a slope, check 90/95% confidence intervals
+# Functions to draw a slope, check 90/95% confidence intervals
 # with the line
 simhit90line <- function(pre = 10,
                          post = 5,

@@ -132,7 +132,6 @@ makeplot(
 )
 dev.off()
 
-
 jpeg("comp1.jpeg", height = 300)
 makeplot(
   alldata = comp1,
@@ -152,7 +151,6 @@ makeplot(
 )
 text(5, 135, "B", cex = 3)
 dev.off()
-
 
 jpeg("range.jpeg", height = 300)
 par(
@@ -403,8 +401,6 @@ ans <- rightlist[[1]]
 for (i in 2:N)
   ans <- rbind(ans, rightlist[[i]])
 
-ans
-
 write.csv(ans, "ans.csv")
 
 # writing data for posterity
@@ -416,7 +412,6 @@ for (i in 1:6)
 # Number of sims
 # Real SDs across sims
 sds <- seq(8, 22, length.out = 6)
-
 
 set.seed(242143)
 bins <- seq(-2, 2, length.out = 7)
@@ -649,14 +644,11 @@ write.csv(allans, "ans.csv")
 for (i in 1:6)
   write.csv(dats[[i]], paste("data", i, ".csv", sep = ""))
 
-
-simhit90line()
-
 # Checking coverage rates with line. Ideally the first should be
 # about .9 and the second about .95
 
-mean(replicate(100000, simhit90line()))
-mean(replicate(100000, simhit95line()))
+mean(replicate(10000, simhit90line()))
+mean(replicate(10000, simhit95line()))
 
 # Same w/o the line
 mean(replicate(10000, simhit90no()))

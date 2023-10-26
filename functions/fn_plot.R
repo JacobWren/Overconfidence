@@ -36,8 +36,6 @@ makeplot <- function(alldata,
     abline(a = 100, b = slope)
   if (showbest) {
     coefs <- summary(lm(presales ~ predates))$coefficients
-    # fixed_intercept <- 100
-    # coefs <- summary(lm(I(presales - fixed_intercept) ~ 0 + predates))$coefficients
     abline(a = coefs[1], b = coefs[2], lty = 3)
   }
   abline(h = seq(60, 140, by = 10),
