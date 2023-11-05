@@ -1,4 +1,6 @@
-# Version for early October "big pilot"
+# Version for October 2023 "big pilot"
+# 1) Generates figures & data (including correct answers) for each problem
+# 2) Verifies coverage probability
 
 # Load functions
 source("fn_data.R")
@@ -6,166 +8,181 @@ source("fn_true_dist.R")
 source("fn_plot.R")
 source("fn_coverage.R")
 
-
-# Test data set with slope .5
-test <- makedata(slope = .5)
-plot(test$time, test$sales)
-trudist(alldat = test,
-        slope = .5,
-        line = 1)
-trudist(alldat = test,
-        slope = .5,
-        line = 0)
-
-# Plot data
-makeplot(
-  alldata = test,
-  slope = .5,
-  tpred = 20,
-  xlim = c(0, 19.5)
+# Parameters for all figured
+params <- c(
+  'n' = 20,
+  'n_post' = 10
 )
 
+# Training examples 
 
-# Training examples v2
-# setwd("~/Dropbox/Apps/Overleaf/Thinking and Confidence/_img/trainingv2")
-set.seed(2445633)
-lowvarv2 <- makedata(slope = 1.6,
-                     noisevec = rnorm(20, 0 , 1.5),
-                     post = 10)
-morevarv2 <- makedata(slope = -.3,
-                      noisevec = rnorm(20, 0 , 15),
-                      post = 10)
-nolinev2 <- makedata(slope = .4,
-                     noisevec = rnorm(20, 0, 4),
-                     post = 10)
+# Set training figures parameters
+params_train <- c(
+  'mean' = 0,
+  'var1' = 1.5,
+  'var2' = 15,
+  'var3' = 4,
+  'slope1' = 1.6,
+  'slope2' = -0.30,
+  'slope3' = 0.40
+)
+
+set.seed(2445633)  # Set training seed
+lowvarv2 <- makedata(slope = params_train['slope1'],
+                     noisevec = rnorm(params['n'], params_train['mean'] , params_train['var1']),
+                     post = params['n_post'])
+morevarv2 <- makedata(slope = params_train['slope2'],
+                      noisevec = rnorm(params['n'], params_train['mean'] , params_train['var2']),
+                      post = params['n_post'])
+nolinev2 <- makedata(slope = params['slope3'],
+                     noisevec = rnorm(params['n'], params_train['mean'], params_train['var3']),
+                     post = params['n_post'])
 
 
-trudist(alldat = lowvarv2,
-        slope = 1.6,
-        line = 1)
-
-
+# Set practice figures parameters
+params_prac <- c(
+  'mean' = 0,
+  'var' = 1.5,
+  'var3' = 4,
+  'var4' = 15,
+  'slope1' = -1.1,
+  'slope2' = -1.1,
+  'slope3' = 0.5,
+  'slope4' = -0.5,
+  'scale1' = 3,
+  'scale2' = 22
+)
 set.seed(24532)
-toscale <- rnorm(20, 0, 1)
-practice1 <- makedata(slope = -1.1,
-                      noisevec = 3 * toscale,
-                      post = 10)
-practice2 <- makedata(slope = -1.1,
-                      noisevec = 22 * toscale,
-                      post = 10)
-practice3 <- makedata(slope = .5,
-                      noisevec = rnorm(20, 0, 4),
-                      post = 10)
-practice4 <- makedata(slope = -.5,
-                      noisevec = rnorm(20, 0, 15),
-                      post = 10)
+scale_prac <- rnorm(params['n'], params_prac['mean'], params_prac['var'])
+practice1 <- makedata(slope = params_prac['slope1'],
+                      noisevec = params_prac['scale1'] * scale_prac,
+                      post = params['n_post'])
+practice2 <- makedata(slope = params_prac['slope2'],
+                      noisevec = params_prac['scale2'] * scale_prac,
+                      post = params['n_post'])
+practice3 <- makedata(slope = params_prac['slope3'],
+                      noisevec = rnorm(params['n'], params_prac['mean'], params_prac['var3']),
+                      post = params['n_post'])
+practice4 <- makedata(slope = params_prac['slope4'],
+                      noisevec = rnorm(params['n'], params_prac['mean'], params_prac['var4']),
+                      post = params['n_post'])
 
-toscale_comp <- rnorm(20, 0, 1)
-comp1 <- makedata(slope = .2,
-                  noisevec = 2 * toscale_comp,
-                  post = 10)
-comp2 <- makedata(slope = .2,
-                  noisevec = 8 * toscale_comp,
-                  post = 10)
+# Set comp figures parameters
+params_comp <- c(
+  'mean' = 0,
+  'var' = 1,
+  'slope' = 0.20,
+  'scale1' = 2,
+  'scale2' = 8
+)
+scale_comp <- rnorm(params['n'], params_comp['mean'], params_comp['var'])
+comp1 <- makedata(slope = params_comp['slope'],
+                  noisevec = params_comp['scale1'] * scale_comp,
+                  post = params['n_post'])
+comp2 <- makedata(slope = params_comp['slope'],
+                  noisevec = params_comp['scale2'] * scale_comp,
+                  post = params['n_post'])
 
+fig_height <- 300
+x_lim = c(0, 19.5)
 
-jpeg("train1.jpeg", height = 300)
+jpeg("train1.jpeg", height = fig_height)
 makeplot(
   alldata = lowvarv2,
-  slope = 1.6,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  slope = params_train['slope1'],
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("train2.jpeg", height = 300)
+jpeg("train2.jpeg", height = fig_height)
 makeplot(
   alldata = morevarv2,
-  slope = -.3,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  slope = params_train['slope2'],
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("train3.jpeg", height = 300)
+jpeg("train3.jpeg", height = fig_height)
 makeplot(
   alldata = nolinev2,
   treat = 0,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  tpred = params['n'],
+  xlim = x_lim 
 )
 dev.off()
 
-jpeg("practice1.jpeg", height = 300)
+jpeg("practice1.jpeg", height = fig_height)
 makeplot(
   alldata = practice1,
-  slope = -1.1,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  slope = params_prac['slope1'],
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("practice2.jpeg", height = 300)
+jpeg("practice2.jpeg", height = fig_height)
 makeplot(
   alldata = practice2,
-  slope = -1.1,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  slope = params_prac['slope2'],
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("practice3.jpeg", height = 300)
+jpeg("practice3.jpeg", height = fig_height)
 makeplot(
   alldata = practice3,
   treat = 0,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("practice4.jpeg", height = 300)
+jpeg("practice4.jpeg", height = fig_height)
 makeplot(
   alldata = practice4,
   treat = 0,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  tpred = params['n'],
+  xlim = x_lim
 )
 dev.off()
 
-jpeg("comp1.jpeg", height = 300)
+jpeg("comp1.jpeg", height = fig_height)
 makeplot(
   alldata = comp1,
   treat = 0,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  tpred = params['n'],
+  xlim = x_lim
 )
 text(5, 135, "A", cex = 3)
 dev.off()
 
-jpeg("comp2.jpeg", height = 300)
+jpeg("comp2.jpeg", height = fig_height)
 makeplot(
   alldata = comp2,
   treat = 0,
-  tpred = 20,
-  xlim = c(0, 19.5)
+  tpred = params['n'],
+  xlim = x_lim
 )
 text(5, 135, "B", cex = 3)
 dev.off()
 
-jpeg("range.jpeg", height = 300)
+jpeg("range.jpeg", height = fig_height)
 par(
   mfrow = c(1, 1),
   mar = c(2.8, 2.8, .5, .5),
   mgp = c(1.6, .5, 0)
 )
 plot(
-  0:20,
+  0:params['n'],
   60:80,
   pch = 19,
   ylim = c(60, 140),
   xlab = "Day",
   ylab = "Sales",
-  xlim = c(0, 19.5),
+  xlim = x_lim,
   col = "white",
   axes = FALSE
 )
@@ -178,76 +195,60 @@ axis(
   las = 2
 )
 box()
-abline(v = 20, col = "red", lwd = 3)
+abline(v = params['n'], col = "red", lwd = 3)
 abline(h = seq(60, 140, by = 10), col = rgb(0, 0, 0, alpha = .3))
-lines(c(0, 20), c(100, 100 + 20 * 2), lwd = 3)
-lines(c(0, 20), c(100, 100 + 20 * (-2)), lwd = 3)
+lines(c(0, params['n']), c(100, 100 + params['n'] * 2), lwd = 3)
+lines(c(0, params['n']), c(100, 100 + params['n'] * (-2)), lwd = 3)
 for (rs in runif(6, -2, 2)) {
-  lines(c(0, 20), c(100, 100 + 20 * (rs)), lwd = 1)
+  lines(c(0, params['n']), c(100, 100 + params['n'] * (rs)), lwd = 1)
 }
 text(18, 100, "?", cex = 3, col = "dark grey")
 dev.off()
 
-practiceans <- data.frame(problem = c(1:4))
+num_practice <- 4
+practiceans <- data.frame(problem = c(1:num_practice))
+p1_dist <- trudist(
+  alldat = practice1,
+  slope = params_prac['slope1'],
+  line = 1
+)
+p2_dist <- trudist(
+  alldat = practice2,
+  slope = params_prac['slope2'],
+  line = 1
+)
+p3_dist <- trudist(
+  alldat = practice3,
+  slope = params_prac['slope3'],
+  line = 0
+)
+p4_dist <- trudist(
+  alldat = practice4,
+  slope = params_prac['slope4'],
+  line = 0
+)
 practiceans$mean <-
-  c(
-    trudist(
-      alldat = practice1,
-      slope = -1.1,
-      line = 1
-    )$mean,
-    trudist(
-      alldat = practice2,
-      slope = -1.1,
-      line = 1
-    )$mean,
-    trudist(
-      alldat = practice3,
-      slope = .5,
-      line = 0
-    )$mean,
-    trudist(
-      alldat = practice4,
-      slope = -.5,
-      line = 0
-    )$mean
+  c(p1_dist$mean,
+    p2_dist$mean,
+    p3_dist$mean,
+    p4_dist$mean
   )
-
 practiceans$sd <-
-  c(
-    trudist(
-      alldat = practice1,
-      slope = -1.1,
-      line = 1
-    )$sd,
-    trudist(
-      alldat = practice2,
-      slope = -1.1,
-      line = 1
-    )$sd,
-    trudist(
-      alldat = practice3,
-      slope = .5,
-      line = 0
-    )$sd,
-    trudist(
-      alldat = practice4,
-      slope = -.5,
-      line = 0
-    )$sd
+  c(p1_dist$sd,
+    p2_dist$sd,
+    p3_dist$sd,
+    p4_dist$sd
   )
-practiceans
 write.csv(practiceans, "practiceans.csv")
 
-####### CREATING DATA A PLOTS FOR THE PILOT
-## For 1-6 the randomization is no line/line and near/far
-# Number of sims
-N <- 6
-# Real SDs across sims
-sds <- seq(1, 8, length.out = 6)
+# DATA PLOTS FOR THE PILOT
+# For 1-6 the randomization is no line/line and near/far
+n_sims <- 6 # Number of simulations
+# Real SDs across simulations
+sds <- seq(1, 8, length.out = n_sims)
 
 # Pre data points
-prepoints <- 10
+prepoints <- params['n_post']
 # post for close problems
 postc <- 3
 # post for long problems
@@ -255,20 +256,20 @@ postf <- 13
 
 set.seed(2342423)
 bins <- seq(-2, 2, length.out = 7)
-slopestrat <- rep(NA, 6)
+slopestrat <- rep(NA, n_sims)
 # shuffling
-for (i in 1:6)
+for (i in 1:n_sims)
   slopestrat[i] <- runif(1, bins[i], bins[i + 1])
 
 # Simulating data
 # Randomizing the order of the slopes
-slopes <- slopestrat[sample(1:6, 6)]
+slopes <- slopestrat[sample(1:n_sims, n_sims)]
 # Empty list for data
 dats <- list()
-# Also making a separate "close" data that stops earlier
-# For easier input to the trudist function
+# Also making a separate "close" data that stops earlier;
+# for easier input to the trudist function
 datsclose <- list()
-for (i in 1:6) {
+for (i in 1:n_sims) {
   dats[[i]] <- makedata(
     slope = slopes[i],
     pre = prepoints,
@@ -280,158 +281,99 @@ for (i in 1:6) {
 }
 
 # Making plots
-#setwd("~/Dropbox/Apps/Overleaf/Thinking and Confidence/_img/stratv2")
-for (i in 1:N) {
+c_lim = 0.20
+f_lim = 0.30
+for (i in 1:n_sims) {
   jpeg(paste(i, "c", "l", ".jpeg", sep = ""),
-       height = 300,
+       height = fig_height,
        width = 300)
   makeplot(
     alldata = dats[[i]],
     slope = slopes[i],
     tpred = prepoints + postc,
-    xlim = c(0, prepoints + postc - .2)
+    xlim = c(0, prepoints + postc - c_lim)
   )
   dev.off()
   
   jpeg(paste(i, "f", "l", ".jpeg", sep = ""),
-       height = 300,
+       height = fig_height,
        width = 480)
   makeplot(
     alldata = dats[[i]],
     slope = slopes[i],
     tpred = prepoints + postf,
-    xlim = c(0, prepoints + postf - .3)
+    xlim = c(0, prepoints + postf - f_lim)
   )
   dev.off()
   
   jpeg(paste(i, "c", "n", ".jpeg", sep = ""),
-       height = 300,
+       height = fig_height,
        width = 300)
   makeplot(
     alldata = dats[[i]],
     slope = slopes[i],
     treat = 0,
     tpred = prepoints + postc,
-    xlim = c(0, prepoints + postc - .2)
+    xlim = c(0, prepoints + postc - c_lim)
   )
   dev.off()
   
   jpeg(paste(i, "f", "n", ".jpeg", sep = ""),
-       height = 300,
+       height = fig_height,
        width = 480)
   makeplot(
     alldata = dats[[i]],
     slope = slopes[i],
     treat = 0,
     tpred = prepoints + postf,
-    xlim = c(0, prepoints + postf - .3)
+    xlim = c(0, prepoints + postf - f_lim)
   )
   dev.off()
 }
 
 
-# Right answers for each problem, first just mean and sd
-# making a list which will hold data for each problem
-rightlist <- list()
-for (i in 1:6) {
-  # setting up the df
-  rightlist[[i]] <- data.frame(
-    problem = rep(i, 4),
-    distance = c("c", "f", "c", "f"),
-    line = c("l", "l", "n", "n"),
-    mean = NA,
-    sd = NA,
-    mbestsd = NA,
-    mavgsd = NA
-  )
-  # population mean and sd
-  # for line/close
-  rightlist[[i]]$mean[1] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 1)$mean
-  rightlist[[i]]$sd[1] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 1)$sd
-  # for line/far
-  rightlist[[i]]$mean[2] <- trudist(alldat = dats[[i]],
-                                    slope = slopes[i],
-                                    line = 1)$mean
-  rightlist[[i]]$sd[2] <- trudist(alldat = dats[[i]],
-                                  slope = slopes[i],
-                                  line = 1)$sd
-  # for no/close
-  rightlist[[i]]$mean[3] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$mean
-  rightlist[[i]]$sd[3] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$sd
-  rightlist[[i]]$mbestsd[3] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$bestsd
-  rightlist[[i]]$mavgsd[3] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$avgsd
-  # for no/far
-  rightlist[[i]]$mean[4] <- trudist(alldat = dats[[i]],
-                                    slope = slopes[i],
-                                    line = 0)$mean
-  rightlist[[i]]$sd[4] <- trudist(alldat = dats[[i]],
-                                  slope = slopes[i],
-                                  line = 0)$sd
-  rightlist[[i]]$mbestsd[4] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$bestsd
-  rightlist[[i]]$mavgsd[4] <-
-    trudist(alldat = datsclose[[i]],
-            slope = slopes[i],
-            line = 0)$avgsd
-  
-}
-
-# Combinine to one data frame
+# Right answers for each problem.
+rightlist <- fn_solutions(datsclose,
+                          datsclose,
+                          dats,
+                          dats,
+                          slopes,
+                          n_sims,
+                          0,
+                          num_practice)
+# Combine to one data frame
 ans <- rightlist[[1]]
-for (i in 2:N)
+for (i in 2:n_sims)
   ans <- rbind(ans, rightlist[[i]])
-
+# Write answers
 write.csv(ans, "ans.csv")
 
-# writing data for posterity
-for (i in 1:6)
-  write.csv(dats[[i]], paste("data", i, ".csv", sep = ""))
+# For 7-12 the randomization is no line/line and near/far
+# AND we scale the variance so the true answer is the same across these simulations
 
-## For 7-12 the randomization is no line/line and near/far
-# AND we scale the variance so the true answer is the same across these
-# Number of sims
-# Real SDs across sims
-sds <- seq(8, 22, length.out = 6)
+# Real SDs across simulations.
+sds <- seq(8, 22, length.out = n_sims)
 
 set.seed(242143)
 bins <- seq(-2, 2, length.out = 7)
-slopestrat <- rep(NA, 6)
+slopestrat <- rep(NA, n_sims)
 # shuffling
-for (i in 1:6)
+for (i in 1:n_sims)
   slopestrat[i] <- runif(1, bins[i], bins[i + 1])
 
 # Simulating data
 # Randomizing the order of the slopes
-slopes <- slopestrat[sample(1:6, 6)]
-# Empty lists for data
+slopes <- slopestrat[sample(1:n_sims, n_sims)]
+
+# Empty lists for data storage
 dats_lf <- list()
 dats_lc <- list()
 dats_nf <- list()
 dats_nc <- list()
-for (i in 1:6) {
-  # Baseline noise vector for the line problems
-  basenoise <- rnorm(prepoints + postf, 0, sds[i])
-  # Creating line data, first far
+for (i in 1:n_sims) {
+  # Baseline noise vector for the line problems.
+  basenoise <- rnorm(prepoints + postf, params_train['mean'], sds[i])
+  # Creating line data, first for far.
   dats_lf[[i]] <-
     makedata(
       slope = slopes[i],
@@ -452,7 +394,7 @@ for (i in 1:6) {
                      slope = slopes[i],
                      line = 0)$sd
   # Some guesses for the right factor
-  n_tests <- 20
+  n_tests <- params['n']
   testfactors_f <-
     seq(.8 * linesd / farsd, 1.2 * linesd / farsd, length.out = n_tests)
   testfactors_c <-
@@ -508,9 +450,9 @@ for (i in 1:6) {
 
 # Making plots
 # setwd("~/Dropbox/Apps/Overleaf/Thinking and Confidence/_img/stratv2")
-for (i in 1:N) {
-  jpeg(paste(6 + i, "c", "l", ".jpeg", sep = ""),
-       height = 300,
+for (i in 1:n_sims) {
+  jpeg(paste(n_sims + i, "c", "l", ".jpeg", sep = ""),
+       height = fig_height,
        width = 300)
   makeplot(
     alldata = dats_lc[[i]],
@@ -520,8 +462,8 @@ for (i in 1:N) {
   )
   dev.off()
   
-  jpeg(paste(6 + i, "f", "l", ".jpeg", sep = ""),
-       height = 300,
+  jpeg(paste(n_sims + i, "f", "l", ".jpeg", sep = ""),
+       height = fig_height,
        width = 480)
   makeplot(
     alldata = dats_lf[[i]],
@@ -531,8 +473,8 @@ for (i in 1:N) {
   )
   dev.off()
   
-  jpeg(paste(6 + i, "c", "n", ".jpeg", sep = ""),
-       height = 300,
+  jpeg(paste(n_sims + i, "c", "n", ".jpeg", sep = ""),
+       height = fig_height,
        width = 300)
   makeplot(
     alldata = dats_nc[[i]],
@@ -543,8 +485,8 @@ for (i in 1:N) {
   )
   dev.off()
   
-  jpeg(paste(6 + i, "f", "n", ".jpeg", sep = ""),
-       height = 300,
+  jpeg(paste(n_sims + i, "f", "n", ".jpeg", sep = ""),
+       height = fig_height,
        width = 480)
   makeplot(
     alldata = dats_nf[[i]],
@@ -556,116 +498,36 @@ for (i in 1:N) {
   dev.off()
 }
 
-
-# Right answers for each problem, first just mean and sd
-# making a list which will hold data for each problem
-rightlist <- list()
-for (i in 1:6) {
-  # setting up the df
-  rightlist[[i]] <- data.frame(
-    problem = rep(i + 6, 4),
-    distance = c("c", "f", "c", "f"),
-    line = c("l", "l", "n", "n"),
-    mean = NA,
-    sd = NA,
-    mbestsd = NA,
-    mavgsd = NA
-  )
-  # population mean and sd
-  # for line/close
-  rightlist[[i]]$mean[1] <-
-    trudist(alldat = dats_lc[[i]],
-            slope = slopes[i],
-            line = 1)$mean
-  rightlist[[i]]$sd[1] <-
-    trudist(alldat = dats_lc[[i]],
-            slope = slopes[i],
-            line = 1)$sd
-  # for line/far
-  rightlist[[i]]$mean[2] <-
-    trudist(alldat = dats_lf[[i]],
-            slope = slopes[i],
-            line = 1)$mean
-  rightlist[[i]]$sd[2] <-
-    trudist(alldat = dats_lf[[i]],
-            slope = slopes[i],
-            line = 1)$sd
-  # for no/close
-  rightlist[[i]]$mean[3] <-
-    trudist(alldat = dats_nc[[i]],
-            slope = slopes[i],
-            line = 0)$mean
-  rightlist[[i]]$sd[3] <-
-    trudist(alldat = dats_nc[[i]],
-            slope = slopes[i],
-            line = 0)$sd
-  rightlist[[i]]$mbestsd[3] <-
-    trudist(alldat = dats_nc[[i]],
-            slope = slopes[i],
-            line = 0)$bestsd
-  rightlist[[i]]$mavgsd[3] <-
-    trudist(alldat = dats_nc[[i]],
-            slope = slopes[i],
-            line = 0)$avgsd
-  # for no/far
-  rightlist[[i]]$mean[4] <-
-    trudist(alldat = dats_nf[[i]],
-            slope = slopes[i],
-            line = 0)$mean
-  rightlist[[i]]$sd[4] <-
-    trudist(alldat = dats_nf[[i]],
-            slope = slopes[i],
-            line = 0)$sd
-  rightlist[[i]]$mbestsd[4] <-
-    trudist(alldat = dats_nf[[i]],
-            slope = slopes[i],
-            line = 0)$bestsd
-  rightlist[[i]]$mavgsd[4] <-
-    trudist(alldat = dats_nf[[i]],
-            slope = slopes[i],
-            line = 0)$avgsd
-  
-}
+rightlist2 <- fn_solutions(dats_lc,
+                          dats_nc,
+                          dats_lf,
+                          dats_nf,
+                          slopes,
+                          n_sims,
+                          n_sims,
+                          num_practice)
 
 # Combinine to one data frame
-ans2 <- rightlist[[1]]
-for (i in 2:N)
-  ans2 <- rbind(ans2, rightlist[[i]])
-ans2
+ans2 <- rightlist2[[1]]
+for (i in 2:n_sims)
+  ans2 <- rbind(ans2, rightlist2[[i]])
 
 allans <- rbind(ans, ans2)
-allans
-allans$scaled <- ifelse(allans$problem > 6, 1, 0)
-
-allans
+allans$scaled <- ifelse(allans$problem > n_sims, 1, 0)
 write.csv(allans, "ans.csv")
 
-# writing data for posterity
-for (i in 1:6)
-  write.csv(dats[[i]], paste("data", i, ".csv", sep = ""))
-
-# Checking coverage rates with line. Ideally the first should be
-# about .9 and the second about .95
-
-mean(replicate(10000, simhit90line()))
-mean(replicate(10000, simhit95line()))
-
-# Same w/o the line
-mean(replicate(10000, simhit90no()))
-mean(replicate(10000, simhit95no()))
-
-
+# Check coverage probability.
 mean(replicate(1000, simhit90line(
-  pre = 15, noisevec = rnorm(20, 0, 15)
+  pre = 15, noisevec = rnorm(params['n'], params['mean'], 15)
 )))
 mean(replicate(1000, simhit95line(
-  pre = 15, noisevec = rnorm(20, 0, 15)
+  pre = 15, noisevec = rnorm(params['n'], params['mean'], 15)
 )))
 mean(replicate(1000, simhit90no(
-  pre = 15, noisevec = rnorm(20, 0, 15)
+  pre = 15, noisevec = rnorm(params['n'], params['mean'], 15)
 )))
 mean(replicate(1000, simhit95no(
-  pre = 15, noisevec = rnorm(20, 0, 15)
+  pre = 15, noisevec = rnorm(params['n'], params['mean'], 15)
 )))
 
 
@@ -679,3 +541,5 @@ mean(replicate(1000, trudist(
 mean(replicate(1000, trudist(
   alldat = makedata(slope = runif(1, -1, 1)), tpred = 15
 )$hit95))
+
+# JAKE: see res; re-look over this mod, reformat, fix others (should be quick)

@@ -1,18 +1,20 @@
-# Function to make "all" (e.g., pre and post) of the data.
+# Function to make "all" (e.g., pre_ and post_) of the data.
 # Period column marks what is observed vs not observed.
-# Make sure the first argument of noisevec matches pre + post
-makedata <- function(slope,
-                     pre = 10,
-                     noisevec = rnorm(15, 0, 5),
-                     post = 5) {
-  dates <- 1:(pre + post)
-  sales <- 100 + slope * dates + noisevec
-  period <- c(rep("Pre", pre), rep("Post", post))
-  return(data.frame(
-    time = dates,
-    sales = sales,
-    period = period
-  ))
-}
+# The first argument of noisevec_ should equal pre_ + post_.
 
-test <- makedata(slope = .2)
+fn_makedata <-
+  function(slope_,
+           pre_ = 10,
+           noisevec_ = rnorm(15, 0, 5),
+           post_ = 5)
+  {
+    dates <- 1:(pre_ + post_)
+    sales <- 100 + slope_ * dates + noisevec_
+    period <- c(rep("Pre
+", pre_), rep("Post", post_))
+    return(data.frame(
+      time = dates,
+      sales = sales,
+      period = period
+    ))
+  }
