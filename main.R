@@ -1,8 +1,7 @@
-# Version for October 2023 "big pilot".
+# Version for November 2023 "big pilot".
 # 1) Generates figures & data (writes correct answers to .csv) for each problem.
 # 2) Verifies coverage probability.
 # Note: data parameters are set in "fn_params.R" module.
-
 # Load functions
 source("~/overprecision/fn_params.R")
 source("~/overprecision/fn_data.R")
@@ -15,7 +14,7 @@ source("~/overprecision/fn_answers.R")
 # Helper grid to map different params to fn_data().
 train_variants <- list(c('slope1', 'var1'), c('slope2', 'var2'),
                        c('slope3', 'var3'))
-set.seed(2445633)  # Set training seed.
+set.seed(121)  # Set training seed.
 set_params <- fn_data_params()
 params_n <- set_params$params_n_
 params_train <- set_params$params_train_
@@ -34,7 +33,7 @@ lowvarv <- train_data[[1]]
 morevarv <- train_data[[2]]
 nolinev <- train_data[[3]]
 
-set.seed(24532)
+set.seed(201)
 
 # Helper grid to map different params to fn_makedata().
 prac_variants <-
@@ -147,7 +146,8 @@ write.csv(practiceans, "practiceans.csv")
 # For 1-6 the randomization is no line/line and near/far
 n_sims <- 6 # Number of simulations
 # Real SDs across simulations
-sds <- seq(1, 8, length.out = n_sims)
+# sds <- seq(1, 8, length.out = n_sims)
+sds <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=1, ub=8)
 
 # Pre data points
 prepoints <- params_n['n_post']
@@ -156,12 +156,8 @@ postc <- 3
 # post for long problems
 postf <- 13
 
-set.seed(2342423)
-bins <- seq(-2, 2, length.out = 7)
-slopestrat <- rep(NA, n_sims)
-# shuffling
-for (i in 1:n_sims)
-  slopestrat[i] <- runif(1, bins[i], bins[i + 1])
+set.seed(3)
+slopestrat <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=-2, ub=2)
 
 # Simulating data
 # Randomizing the order of the slopes
@@ -241,9 +237,10 @@ write.csv(ans, "ans.csv")
 # AND we scale the variance so the true answer is the same across these simulations
 
 # Real SDs across simulations.
-sds <- seq(8, 22, length.out = n_sims)
+# sds <- seq(8, 22, length.out = n_sims)
+sds <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=1, ub=16.5)
 
-set.seed(242143)
+set.seed(401)
 bins <- seq(-2, 2, length.out = 7)
 slopestrat <- rep(NA, n_sims)
 # shuffling
@@ -409,7 +406,7 @@ allans$scaled <- ifelse(allans$problem > n_sims, 1, 0)
 write.csv(allans, "ans.csv")
 
 # Check coverage probability.
-mean(replicate(10000, fn_simhit(var_ = "hit90")))  # 90 coverage w/ line
-mean(replicate(10000, fn_simhit()))  # 95 coverage w/ line
-mean(replicate(1000, fn_simhit(line_ = 0, var_ = "hit90")))  # 90 coverage w/ out line
-mean(replicate(1000, fn_simhit(line_ = 0)))  # 95 coverage w/ out line
+mean(replicate(100000, fn_simhit(var_ = "hit90")))  # 90 coverage w/ line
+mean(replicate(100000, fn_simhit()))  # 95 coverage w/ line
+mean(replicate(10000, fn_simhit(line_ = 0, var_ = "hit90")))  # 90 coverage w/ out line
+mean(replicate(10000, fn_simhit(line_ = 0)))  # 95 coverage w/ out line

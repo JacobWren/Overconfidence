@@ -9,7 +9,7 @@ fn_data_params <- function() {
   params_train_ <- c(
     'mean' = 0,
     'var1' = 1.5,
-    'var2' = 15,
+    'var2' = 14,
     'var3' = 4,
     'slope1' = 1.6,
     'slope2' = -0.30,
@@ -27,7 +27,7 @@ fn_data_params <- function() {
     'slope3' = 0.5,
     'slope4' = -0.5,
     'scale1' = 3,
-    'scale2' = 22,
+    'scale2' = 11,
     'scale3' = 1,
     'scale4' = 1
   )

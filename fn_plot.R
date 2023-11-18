@@ -27,6 +27,12 @@ fn_makeplot <-
          width = width_)
     predates <- alldata_$time[alldata_$period == "Pre"]
     presales <- alldata_$sales[alldata_$period == "Pre"]
+    # Check if any element is less than or equal to 60 or greater than or equal to 140
+    if (any(presales <= 60 | presales >= 140)) {
+      print("********************************************************************")
+      print(paste("A point in plot", plot_name_, "is outside of the figure's bounds."))
+      print(paste("*******************************************************************", "\n"))
+    }
     pars <- fn_plot_params()
     plot(
       predates,
