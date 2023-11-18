@@ -25,8 +25,7 @@ fn_makeplot <-
     jpeg(paste0(plot_name_, ".jpeg"),
          height = 300,
          width = width_)
-    predates <- alldata_$time[al
-                              ldata_$period == "Pre"]
+    predates <- alldata_$time[alldata_$period == "Pre"]
     presales <- alldata_$sales[alldata_$period == "Pre"]
     pars <- fn_plot_params()
     plot(

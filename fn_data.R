@@ -10,8 +10,7 @@ fn_makedata <-
   {
     dates <- 1:(pre_ + post_)
     sales <- 100 + slope_ * dates + noisevec_
-    period <- c(rep("Pre
-", pre_), rep("Post", post_))
+    period <- c(rep("Pre", pre_), rep("Post", post_))
     return(data.frame(
       time = dates,
       sales = sales,

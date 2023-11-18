@@ -4,13 +4,15 @@
 # Note: data parameters are set in "fn_params.R" module.
 
 # Load functions
-source("fn_data.R")
-source("fn_true_dist.R")
-source("fn_plot.R")
-source("fn_coverage.R")
+source("~/overprecision/fn_params.R")
+source("~/overprecision/fn_data.R")
+source("~/overprecision/fn_true_dist.R")
+source("~/overprecision/fn_plot.R")
+source("~/overprecision/fn_coverage.R")
+source("~/overprecision/fn_answers.R")
 
 # Training examples
-# Helper grid to map different params to fn_makedata().
+# Helper grid to map different params to fn_data().
 train_variants <- list(c('slope1', 'var1'), c('slope2', 'var2'),
                        c('slope3', 'var3'))
 set.seed(2445633)  # Set training seed.

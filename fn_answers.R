@@ -1,4 +1,5 @@
 # Right answers for each problem (save in "ans.csv" file).
+source("~/overprecision/fn_true_dist.R")
 
 fn_solutions <- function(close_data_l_,
                          close_data_nl_,
@@ -25,7 +26,7 @@ fn_solutions <- function(close_data_l_,
     # Population mean and sd.
     # for line/close
     dist_feats_lc <-
-      trudist(alldat = close_data_l_[[i]],
+      fn_trudist(alldat = close_data_l_[[i]],
               slope = slopes_[i],
               line = 1)
     solutions[[i]]$mean[1] <- dist_feats_lc$mean
@@ -33,7 +34,7 @@ fn_solutions <- function(close_data_l_,
     
     # for line/far
     dist_feats_lf <-
-      trudist(alldat = all_data_l_[[i]],
+      fn_trudist(alldat = all_data_l_[[i]],
               slope = slopes_[i],
               line = 1)
     solutions[[i]]$mean[2] <- dist_feats_lf$mean
@@ -41,7 +42,7 @@ fn_solutions <- function(close_data_l_,
     
     # for no/close
     dist_feats_nlc <-
-      trudist(alldat = close_data_nl_[[i]],
+      fn_trudist(alldat = close_data_nl_[[i]],
               slope = slopes_[i],
               line = 0)
     solutions[[i]]$mean[3] <- dist_feats_nlc$mean
@@ -52,7 +53,7 @@ fn_solutions <- function(close_data_l_,
     
     # for no/far
     dist_feats_nlf <-
-      trudist(alldat = all_data_nl_[[i]],
+      fn_trudist(alldat = all_data_nl_[[i]],
               slope = slopes_[i],
               line = 0)
     solutions[[i]]$mean[4] <- dist_feats_nlf$mean
