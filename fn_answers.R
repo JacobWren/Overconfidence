@@ -27,24 +27,24 @@ fn_solutions <- function(close_data_l_,
     # for line/close
     dist_feats_lc <-
       fn_trudist(alldat = close_data_l_[[i]],
-              slope = slopes_[i],
-              line = 1)
+                 slope = slopes_[i],
+                 line = 1)
     solutions[[i]]$mean[1] <- dist_feats_lc$mean
     solutions[[i]]$sd[1] <- dist_feats_lc$sd
     
     # for line/far
     dist_feats_lf <-
       fn_trudist(alldat = all_data_l_[[i]],
-              slope = slopes_[i],
-              line = 1)
+                 slope = slopes_[i],
+                 line = 1)
     solutions[[i]]$mean[2] <- dist_feats_lf$mean
     solutions[[i]]$sd[2] <- dist_feats_lf$sd
     
     # for no/close
     dist_feats_nlc <-
       fn_trudist(alldat = close_data_nl_[[i]],
-              slope = slopes_[i],
-              line = 0)
+                 slope = slopes_[i],
+                 line = 0)
     solutions[[i]]$mean[3] <- dist_feats_nlc$mean
     solutions[[i]]$sd[3] <- dist_feats_nlc$sd
     
@@ -54,8 +54,8 @@ fn_solutions <- function(close_data_l_,
     # for no/far
     dist_feats_nlf <-
       fn_trudist(alldat = all_data_nl_[[i]],
-              slope = slopes_[i],
-              line = 0)
+                 slope = slopes_[i],
+                 line = 0)
     solutions[[i]]$mean[4] <- dist_feats_nlf$mean
     solutions[[i]]$sd[4] <- dist_feats_nlf$sd
     

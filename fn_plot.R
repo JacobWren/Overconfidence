@@ -30,8 +30,17 @@ fn_makeplot <-
     # Check if any element is less than or equal to 60 or greater than or equal to 140
     if (any(presales <= 60 | presales >= 140)) {
       print("********************************************************************")
-      print(paste("A point in plot", plot_name_, "is outside of the figure's bounds."))
-      print(paste("*******************************************************************", "\n"))
+      print(paste(
+        "A point in plot",
+        plot_name_,
+        "is outside of the figure's bounds."
+      ))
+      print(
+        paste(
+          "*******************************************************************",
+          "\n"
+        )
+      )
     }
     pars <- fn_plot_params()
     plot(
@@ -99,7 +108,7 @@ fn_rangeplot <- function(params_, xlim_) {
   for (rs in c(-2, 2)) {
     lines(c(0, params_['n']), c(100, 100 + params_['n'] * rs), lwd = 3)
   }
-  for (rs in runif(6, -2, 2)) {
+  for (rs in runif(6,-2, 2)) {
     lines(c(0, params_['n']), c(100, 100 + params_['n'] * (rs)), lwd = 1)
   }
   text(18, 100, "?", cex = 3, col = "dark grey")

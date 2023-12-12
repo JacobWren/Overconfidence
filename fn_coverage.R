@@ -7,7 +7,7 @@ fn_simhit <-
            noisevec_ = rnorm(15, 0, 5),
            line_ = 1,
            var_ = "hit95") {
-    slope <- runif(1,-1, 1)
+    slope <- runif(1, -2, 2)
     data <-
       fn_makedata(slope = slope,
                   post_ = post_,

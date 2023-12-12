@@ -143,11 +143,16 @@ for (sum_stat in c("mean", "sd")) {
 write.csv(practiceans, "practiceans.csv")
 
 # DATA PLOTS FOR THE PILOT
-# For 1-6 the randomization is no line/line and near/far
-n_sims <- 6 # Number of simulations
+# For 1-36 the randomization is no line/line and near/far
+# The pretend is identical (the only thing we change is the line/no line and the end date.)
 # Real SDs across simulations
-# sds <- seq(1, 8, length.out = n_sims)
-sds <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=1, ub=8)
+sds <-
+  fn_sample_uniform(
+    count = params_n['n_problems_set1'] + 1,
+    n_sims_ = params_n['n_problems_set1'],
+    lb = 1,
+    ub = 12
+  )
 
 # Pre data points
 prepoints <- params_n['n_post']
@@ -156,31 +161,38 @@ postc <- 3
 # post for long problems
 postf <- 13
 
-set.seed(3)
-slopestrat <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=-2, ub=2)
+set.seed(330)
+slopestrat <-
+  fn_sample_uniform(
+    count = params_n['n_problems_set1'] + 1,
+    n_sims_ = params_n['n_problems_set1'],
+    lb = -2,
+    ub = 2
+  )
 
 # Simulating data
 # Randomizing the order of the slopes
-slopes <- slopestrat[sample(1:n_sims, n_sims)]
+slopes <-
+  slopestrat[sample(1:params_n['n_problems_set1'], params_n['n_problems_set1'])]
 # Empty list for data
 dats <- list()
 # Also making a separate "close" data that stops earlier;
 # for easier input to the fn_trudist function
 datsclose <- list()
-for (i in 1:n_sims) {
+for (i in 1:params_n['n_problems_set1']) {
   dats[[i]] <- fn_makedata(
     slope_ = slopes[i],
     pre_ = prepoints,
     post_ = postf,
     noisevec_ <- rnorm(prepoints + postf, 0, sds[i])
   )
-  datsclose[[i]] <- dats[[i]][1:(prepoints + postc),]
+  datsclose[[i]] <- dats[[i]][1:(prepoints + postc), ]
 }
 
 # Making plots
 c_lim = 0.20
 f_lim = 0.30
-for (i in 1:n_sims) {
+for (i in 1:params_n['n_problems_set1']) {
   fn_makeplot(
     alldata_ = dats[[i]],
     slope_ = slopes[i],
@@ -224,39 +236,50 @@ for (i in 1:n_sims) {
 
 # Right answers for each problem.
 sols <-
-  fn_solutions(datsclose, datsclose, dats, dats, slopes, n_sims, 0,
+  fn_solutions(datsclose,
+               datsclose,
+               dats,
+               dats,
+               slopes,
+               params_n['n_problems_set1'],
+               0,
                num_practice)
 # Combine to one data frame
 ans <- sols[[1]]
-for (i in 2:n_sims)
+for (i in 2:params_n['n_problems_set1'])
   ans <- rbind(ans, sols[[i]])
 # Write answers
 write.csv(ans, "ans.csv")
 
-# For 7-12 the randomization is no line/line and near/far
+# For 37-48 the randomization is no line/line and near/far
 # AND we scale the variance so the true answer is the same across these simulations
-
 # Real SDs across simulations.
-# sds <- seq(8, 22, length.out = n_sims)
-sds <- fn_sample_uniform(count=7, n_sims_=n_sims, lb=1, ub=16.5)
+sds <-
+  fn_sample_uniform(
+    count = params_n['n_problems_set2'] + 1,
+    n_sims_ = params_n['n_problems_set2'],
+    lb = 1,
+    ub = 19
+  )
 
-set.seed(401)
-bins <- seq(-2, 2, length.out = 7)
-slopestrat <- rep(NA, n_sims)
+set.seed(444)
+bins <- seq(-2, 2, length.out = params_n['n_problems_set2'] + 1)
+slopestrat <- rep(NA, params_n['n_problems_set2'])
 # shuffling
-for (i in 1:n_sims)
+for (i in 1:params_n['n_problems_set2'])
   slopestrat[i] <- runif(1, bins[i], bins[i + 1])
 
 # Simulating data
 # Randomizing the order of the slopes
-slopes <- slopestrat[sample(1:n_sims, n_sims)]
+slopes <-
+  slopestrat[sample(1:params_n['n_problems_set2'], params_n['n_problems_set2'])]
 
 # Empty lists for data storage
 dats_lf <- list()
 dats_lc <- list()
 dats_nf <- list()
 dats_nc <- list()
-for (i in 1:n_sims) {
+for (i in 1:params_n['n_problems_set2']) {
   # Baseline noise vector for the line problems.
   basenoise <-
     rnorm(prepoints + postf, params_train['mean'], sds[i])
@@ -269,7 +292,7 @@ for (i in 1:n_sims) {
       noisevec_ <- basenoise
     )
   # now chopping off the final points for the close version
-  dats_lc[[i]] <- dats_lf[[i]][1:(prepoints + postc),]
+  dats_lc[[i]] <- dats_lf[[i]][1:(prepoints + postc), ]
   # Making the "guess" normalization factors
   dists <- list(c(dats_lf, 1), c(dats_lf, 0), c(dats_lc, 0))
   # Initialize an empty vector.
@@ -284,7 +307,7 @@ for (i in 1:n_sims) {
         )$sd)
   }
   # Some guesses for the right factor
-  n_tests <- params_n['n']
+  n_tests <- 20  # params_n['n']
   testfactors_f <-
     seq(.8 * line_combos[1] / line_combos[3],
         1.2 * line_combos[1] / line_combos[3],
@@ -345,13 +368,13 @@ for (i in 1:n_sims) {
 }
 
 # Making plots
-for (i in 1:n_sims) {
+for (i in 1:params_n['n_problems_set2']) {
   fn_makeplot(
     alldata_ = dats_lc[[i]],
     slope_ = slopes[i],
     tpred_ = prepoints + postc,
     xlim_ = c(0, prepoints + postc - .2),
-    plot_name_ = paste0(n_sims + i, "c", "l"),
+    plot_name_ = paste0(params_n['n_problems_set1'] + i, "c", "l"),
     text_ = 0,
     width_ = 300
   )
@@ -361,7 +384,7 @@ for (i in 1:n_sims) {
     slope_ = slopes[i],
     tpred_ = prepoints + postf,
     xlim_ = c(0, prepoints + postf - .3),
-    plot_name_ = paste0(n_sims + i, "f", "l"),
+    plot_name_ = paste0(params_n['n_problems_set1'] + i, "f", "l"),
     text_ = 0
   )
   
@@ -371,7 +394,7 @@ for (i in 1:n_sims) {
     treat_ = 0,
     tpred_ = prepoints + postc,
     xlim_ = c(0, prepoints + postc - .2),
-    plot_name_ = paste0(n_sims + i, "c", "n"),
+    plot_name_ = paste0(params_n['n_problems_set1'] + i, "c", "n"),
     text_ = 0,
     width_ = 300
   )
@@ -382,7 +405,7 @@ for (i in 1:n_sims) {
     treat_ = 0,
     tpred_ = prepoints + postf,
     xlim_ = c(0, prepoints + postf - .3),
-    plot_name_ = paste0(n_sims + i, "f", "n"),
+    plot_name_ = paste0(params_n['n_problems_set1'] + i, "f", "n"),
     text_ = 0,
   )
 }
@@ -392,21 +415,22 @@ rightlist2 <- fn_solutions(dats_lc,
                            dats_lf,
                            dats_nf,
                            slopes,
-                           n_sims,
-                           n_sims,
+                           params_n['n_problems_set2'],
+                           params_n['n_problems_set1'],
                            num_practice)
 
 # Combinine to one data frame
 ans2 <- rightlist2[[1]]
-for (i in 2:n_sims)
+for (i in 2:params_n['n_problems_set2'])
   ans2 <- rbind(ans2, rightlist2[[i]])
 
 allans <- rbind(ans, ans2)
-allans$scaled <- ifelse(allans$problem > n_sims, 1, 0)
+allans$scaled <-
+  ifelse(allans$problem > params_n['n_problems_set1'], 1, 0)
 write.csv(allans, "ans.csv")
 
 # Check coverage probability.
 mean(replicate(100000, fn_simhit(var_ = "hit90")))  # 90 coverage w/ line
 mean(replicate(100000, fn_simhit()))  # 95 coverage w/ line
-mean(replicate(10000, fn_simhit(line_ = 0, var_ = "hit90")))  # 90 coverage w/ out line
-mean(replicate(10000, fn_simhit(line_ = 0)))  # 95 coverage w/ out line
+mean(replicate(100000, fn_simhit(line_ = 0, var_ = "hit90")))  # 90 coverage w/ out line
+mean(replicate(100000, fn_simhit(line_ = 0)))  # 95 coverage w/ out line

@@ -2,9 +2,15 @@
 
 fn_data_params <- function() {
   # Parameters for all figured
-  params_n_ <- c('n' = 20,
-                 'n_post' = 10)
-  
+  params_n_ <- c(
+    'n' = 20,
+    'n_post' = 10,
+    # Problems 1-36: the pretend is identical and the only thing we
+    # change is the line/no line and the end date.
+    'n_problems_set1' = 36,
+    # Problems 37-48: the variance in the no line problems gets scaled down.
+    'n_problems_set2' = 12
+  )
   # Set training figures parameters
   params_train_ <- c(
     'mean' = 0,

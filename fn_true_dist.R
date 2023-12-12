@@ -17,9 +17,11 @@ fn_trudist <-
     dat <- subset(alldat_, period == "Pre")
     sample_size <- nrow(dat)  # n
     deg_freedom = sample_size - 1
-    # This small sample correction is specific to normal distributions (FYI).
-    bias_correction = (sqrt(2 / deg_freedom) * gamma(sample_size / 2) /
-                         gamma(deg_freedom / 2))
+    # This small sample correction is specific to normal distributions;
+    # not really necessary, however.
+    # bias_correction = (sqrt(2 / deg_freedom) * gamma(sample_size / 2) /
+    #                      gamma(deg_freedom / 2))
+    bias_correction <- 1
     # The "truth" of this simulation; used to compute coverage.
     realsales <-
       alldat_$sales[tpred]  # True point estimate (with noise)

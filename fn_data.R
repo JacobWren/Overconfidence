@@ -19,9 +19,9 @@ fn_makedata <-
   }
 
 
-fn_sample_uniform <- 
+fn_sample_uniform <-
   function(count, n_sims_, lb, ub)
-  # Helper function to make uniform draws. 
+    # Helper function to make uniform draws.
   {
     bins <- seq(lb, ub, length.out = count)
     slopestrat <- rep(NA, n_sims_)
