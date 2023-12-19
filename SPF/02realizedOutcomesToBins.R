@@ -2,6 +2,30 @@ library(readxl)
 library(dplyr)
 library(haven)
 
+# Get the current working directory
+current_dir <- getwd()
+# Check if in "SPF"
+if (!grepl("SPF$", current_dir)) {
+  setwd("SPF")
+}
+
+# Maps observable outcomes to bins that across years and variables.
+# Data structure: one observation per event, where an event is a point in time, e.g., 
+# 1983.75 is Q3 of 1983.
+# Columns are time (usually "year" alone), variable (e.g., recession?), event, and bin.
+
+# Internal check
+stata_data <- read_dta("Data/RealizedOutcomesClean_PRPGDP.dta")
+data <- read.csv("Data/RealizedOutcomesClean_PRPGDP.csv")
+
+# Check for equality of data #
+col_names_equal <- identical(names(data), names(stata_data))
+print(paste("Column names are equal:", col_names_equal))
+
+matrix1 <- as.matrix(data)
+matrix2 <- as.matrix(stata_data)
+data_values_equal <- all.equal(matrix1, matrix2)
+print(paste("Data values are equal:", data_values_equal))
 
 # Apply binning logic
 bin_data <-
@@ -50,6 +74,7 @@ bin_data <-
   }
 
 quick_tidy <- function(df) {
+  # Cleaning helper.
   df$binOutcome <- NA  # Initialize binOutcome with NAs
   
   # Reorder columns
@@ -93,8 +118,6 @@ bin_params <- function(elems) {
   
   return(list(limits[elems], ops))
 }
-# Internal check
-# stata_data <- read_dta("Data/RealizedOutcomesClean_PRUNEMP.dta")
 
 # 1 sheet per variable
 excel_file_path <- "RealizedOutcomes.xlsx"
@@ -108,6 +131,7 @@ for (var in sheet_names) {
   # Process each sheet based on specific conditions
   if (var == "RECESS") {
     # E.g., specific processing for "RECESS"
+    # Recess=1 if quarterly real GDP (or GNP, pre-1992) growth is less than 0.
     data <- data %>%
       mutate(event = Year + Quarter / 4,
              binOutcome = RECESS)
@@ -126,7 +150,7 @@ for (var in sheet_names) {
         list(1992, 2014),
         2014
       )
-    bin_settings <- bin_params(1:7)
+    bin_settings <- bin_params(1:7) # Grab the appropriate bins.
     data <-
       bin_data(data, var, years, bin_settings[[1]], bin_settings[[2]])
     data <- data %>% rename(event = year)
@@ -154,6 +178,7 @@ for (var in sheet_names) {
   }
   
   else if (var == "PRCCPI" | var == "PRCPCE") {
+    # Realized Q4 to Q4 core CPI or core PCE price index percent change
     data <- quick_tidy(data)
     years <- NA
     bin_settings <- bin_params(7)
@@ -162,6 +187,7 @@ for (var in sheet_names) {
   }
   
   else if (var == "PRUNEMP") {
+    # Average realized 12-month unemployment.
     data <- quick_tidy(data)
     years <- list(2014, list(2014, 2020), 2020)
     bin_settings <- bin_params(c(12:14))
@@ -173,15 +199,6 @@ for (var in sheet_names) {
   data <- data %>%
     rename(bin = binOutcome) %>%  # for merging
     select(-Notes) # 'Notes' is a column to be dropped
-  
-  # # Check for equality of data #
-  # col_names_equal <- identical(names(data), names(stata_data))
-  # print(paste("Column names are equal:", col_names_equal))
-  
-  # matrix1 <- as.matrix(data)
-  # matrix2 <- as.matrix(stata_data)
-  # data_values_equal <- all.equal(matrix1, matrix2)
-  # print(paste("Data values are equal:", data_values_equal))
   
   # Save the processed data
   write.csv(data,
