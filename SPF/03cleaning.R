@@ -1,23 +1,8 @@
-library(dplyr)
-library(data.table)
-library(haven)
-library(readxl)
-library(tidyr)
-
-
-# Get the current working directory
-current_dir <- getwd()
-# Check if in "SPF"
-if (!grepl("SPF$", current_dir)) {
-  setwd("SPF")
-}
+source("init_script.R")
 
 # Create  a dataset that looks like:
 # event bin numBins prob timeToEnd
 # Lot's of "one-off" cleaning lines/corrections, etc. -> hard to "systematize".
-
-vars <-
-  c("PRPGDP", "RECESS", "PRCCPI", "PRCPCE", "PRUNEMP", "PRGDP")
 
 # An Excel workbook with multiple worksheets contains the individual responses of the forecasters:
 # SPFmicrodata.xlsx. Each worksheet in the workbook covers the surveys of a different variable from 1968:Q4 to present.
@@ -56,34 +41,28 @@ for (var in vars) {
   names(data) <- tolower(names(data))
   
   # Remove rows where year contains missing values.
-  data <- subset(data,!is.na(year))
-  data <- subset(data, p != "#N/A")
+  data <- subset(data,!is.na(year) & p != "#N/A")
+  
   # Convert to numeric
   data$p <- as.numeric(data$p) / 100 # bounded in [0,1]
   data$time <-
     data$year + (1 / 8) + (data$quarter - 1) / 4
   
-  if (var == "PRPGDP") {
+  if (var != "RECESS") {
     data$event <- data$year # An event is demarcated by a point in time.
-    data$event <-
-      ifelse(data$time > 1981.5 & data$time < 1992 &
-               data$bin > 6,
-             data$year + 1,
-             data$event)
-    data$bin <-
-      ifelse(data$time > 1981.5 & data$time < 1992 &
-               data$bin > 6,
-             data$bin - 6,
-             data$bin)
+  }
+  
+  if (var == "PRPGDP") {
+    # First condition set
+    condition1 <-
+      data$time > 1981.5 & data$time < 1992 & data$bin > 6
+    data$event[condition1] <- data$year[condition1] + 1
+    data$bin[condition1] <- data$bin[condition1] - 6
     
-    data$event <-
-      ifelse(data$time > 1992 & data$bin > 10,
-             data$year + 1,
-             data$event)
-    data$bin <-
-      ifelse(data$time > 1992 & data$bin > 10,
-             data$bin - 10,
-             data$bin)
+    # Second condition set
+    condition2 <- data$time > 1992 & data$bin > 10
+    data$event[condition2] <- data$year[condition2] + 1
+    data$bin[condition2] <- data$bin[condition2] - 10
     
     # Each element in the list is a pair: (event year, time threshold)
     conditions <-
@@ -102,42 +81,31 @@ for (var in vars) {
       time_threshold <- condition[2]
       data <-
         data[!(data$event == event_year &
-                 data$time < time_threshold),]
+                 data$time < time_threshold), ]
     }
   }
   
   else if (var == "PRGDP") {
-    data$event <- data$year
-    data$event <-
-      ifelse(data$time > 1981.5 & data$time < 1992 &
-               data$bin > 6,
-             data$year + 1,
-             data$event)
-    data$bin <-
-      ifelse(data$time > 1981.5 & data$time < 1992 &
-               data$bin > 6,
-             data$bin - 6,
-             data$bin)
+    # First condition set
+    condition1 <-
+      data$time > 1981.5 & data$time < 1992 & data$bin > 6
+    data$event <- ifelse(condition1, data$year + 1, data$event)
+    data$bin <- ifelse(condition1, data$bin - 6, data$bin)
     
-    data$event <-
-      ifelse(data$time > 1992 & data$time < 2009.25 &
-               data$bin > 10,
-             data$year + 1,
-             data$event)
-    data$bin <-
-      ifelse(data$time > 1992 & data$time < 2009.2 &
-               data$bin > 10,
-             data$bin - 10,
-             data$bin)
+    # Second condition set
+    condition2 <-
+      data$time > 1992 & data$time < 2009.25 & data$bin > 10
+    data$event <- ifelse(condition2, data$year + 1, data$event)
+    data$bin <- ifelse(condition2, data$bin - 10, data$bin)
     
     # Define the condition parameters
     conditions <- list(
       list("event", 1, 11, 22),
       list("event", 2, 22, 33),
       list("event", 3, 33, 44),
-      list("bin",-11, 11, 22),
-      list("bin",-22, 22, 33),
-      list("bin",-33, 33, 44)
+      list("bin", -11, 11, 22),
+      list("bin", -22, 22, 33),
+      list("bin", -33, 33, 44)
     )
     
     # Loop over conditions
@@ -147,22 +115,17 @@ for (var in vars) {
       lower_bound <- cond[[3]]     # Lower bound for bin
       upper_bound <- cond[[4]]     # Upper bound for bin
       
+      # Define the common condition
+      common_condition <-
+        data$time > 2009.25 &
+        data$bin > lower_bound & data$bin <= upper_bound
+      
+      # Update event or bin
       if (col_name == "event") {
         data$event <-
-          ifelse(
-            data$time > 2009.25 &
-              data$bin > lower_bound & data$bin <= upper_bound,
-            data$year + add_val,
-            data$event
-          )
+          ifelse(common_condition, data$year + add_val, data$event)
       } else if (col_name == "bin") {
-        data$bin <-
-          ifelse(
-            data$time > 2009.25 &
-              data$bin > lower_bound & data$bin <= upper_bound,
-            data$bin + add_val,
-            data$bin
-          )
+        data$bin <- ifelse(common_condition, data$bin + add_val, data$bin)
       }
     }
     
@@ -184,38 +147,29 @@ for (var in vars) {
       time_threshold <- condition[2]
       data <-
         data[!(data$event == event_year &
-                 data$time < time_threshold),]
+                 data$time < time_threshold), ]
     }
     # p23: "However, an error was made in the first-quarter surveys of 1985 and 1986
-    data <- subset(data, time != 1985.125)
-    data <- subset(data, time != 1990.125)
-    
+    data <- subset(data,!(time %in% c(1985.125, 1990.125)))
   }
   
   else if (var == "PRCCPI" | var == "PRCPCE")  {
-    data$event <- data$year
-    
-    data$event <-
-      ifelse(data$bin > 10,
-             data$year + 1,
-             data$event)
-    data$bin <-
-      ifelse(data$bin > 10,
-             data$bin - 10,
-             data$bin)
+    # Define the condition
+    condition <- data$bin > 10
+    # Update event and bin using the defined condition
+    data$event <- ifelse(condition, data$year + 1, data$event)
+    data$bin <- ifelse(condition, data$bin - 10, data$bin)
   }
   
-  if (var == "PRUNEMP") {
-    data$event <- data$year
-    
+  else if (var == "PRUNEMP") {
     # Define the condition parameters.
     conditions <- list(
       list("event", 1, 10, 20),
       list("event", 2, 20, 30),
       list("event", 3, 30, 40),
-      list("bin",-10, 10, 20),
-      list("bin",-20, 20, 30),
-      list("bin",-30, 30, 40)
+      list("bin", -10, 10, 20),
+      list("bin", -20, 20, 30),
+      list("bin", -30, 30, 40)
     )
     
     # Loop over conditions
@@ -241,10 +195,10 @@ for (var in vars) {
     }
     data <-
       data[!(data$event >= 2014 &
-               data$time < 2014),]
+               data$time < 2014), ]
     data <-
       data[!(data$event >= 2020 &
-               data$time < 2020.25),]
+               data$time < 2020.25), ]
   }
   if (var == "RECESS") {
     data$event <- data$time - (1 / 8) + (data$bin / 4)
@@ -290,14 +244,15 @@ for (var in vars) {
   data <- data %>%
     arrange(grpd_id_event, time, duplicate)
   
-  # annoyingly, for recess event=1983 means ending 4th quarter 1982 but, for GDP, event=1982 means ending 4th
-  # quarter 1982
+  # annoyingly, for recess event=1983 means ending 4th quarter 1982 but, for GDP, event=1982 means ending 4th quarter 1982.
   data <- data %>%
-    mutate(time = ifelse(duplicate == 2 &
-                           var == "RECESS", event - 0.001, time))
-  data <- data %>%
-    mutate(time = ifelse(duplicate == 2 &
-                           var != "RECESS", event + 0.999, time))
+    mutate(
+      time = case_when(
+        duplicate == 2 & var == "RECESS"  ~ event - 0.001,
+        duplicate == 2 & var != "RECESS"  ~ event + 0.999,
+        TRUE                              ~ time
+      )
+    )
   
   file_path <- paste0("Data/RealizedOutcomesClean_", var, ".csv")
   realized_outcomes <- read.csv(file_path)
@@ -322,12 +277,12 @@ for (var in vars) {
       TRUE ~ 3  # Present in both
     ))
   
-  data <- select(data, -in_data, -in_ro)
+  data <- select(data,-in_data,-in_ro)
   
-  data <- data %>%
-    filter(!(var == "PRGDP" & duplicate == 2 & event == 1981))
-  # Drop rows where statas' _merge is 2 (only in realized_outcomes)
-  data <- filter(data, statas_merge != 2)
+  data <-
+    data %>%  # Drop rows where statas' _merge is 2 (only in realized_outcomes).
+    filter(!(var == "PRGDP" &
+               duplicate == 2 & event == 1981), statas_merge != 2)
   
   data <- data %>%
     mutate(p = ifelse(duplicate == 2, 0, p))
@@ -335,7 +290,7 @@ for (var in vars) {
   data <- data %>%
     mutate(p = ifelse(duplicate == 2 & statas_merge == 3, 1, p))
   
-  # For future events, we don't have resolution -> need to delete that resolution entry
+  # For future events, we don't have resolution -> need to delete that resolution entry.
   data <- data %>%
     group_by(id, event, time) %>%
     mutate(grpd_id_event_time = cur_group_id(),
@@ -343,12 +298,12 @@ for (var in vars) {
            total = sum(p, na.rm = TRUE)) %>%  # Sum p within each group
     ungroup() %>% # Remove grouping
     filter(total != 0) %>% # For ones without resolution, all p's will be 0.
-    select(-grpd_id_event_time, -total)
+    select(-grpd_id_event_time,-total)
   
   # Now get variables that are correct.
   data$resolution <- data$duplicate
   data <-
-    select(data, -time_max, -duplicate, -statas_merge, -grpd_id_event)
+    select(data,-time_max,-duplicate,-statas_merge,-grpd_id_event)
   data <- data %>%
     arrange(id, event, time, bin) # sort
   data <- data %>%
@@ -379,7 +334,7 @@ for (var in vars) {
   data <- data %>%
     select(event, time, p, resolution, everything()) %>% # Reorder the columns
     arrange(event, time) %>%
-    select(-p, -id, -industry, -grpd_time_event_bin) %>% # These are the forecaster-varying variables
+    select(-p,-id,-industry,-grpd_time_event_bin) %>% # These are the forecaster-varying variables
     rename(p = mean_p) %>%
     distinct() %>% # Drop duplicates.
     select(event, time, p, resolution, everything()) %>%

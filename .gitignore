@@ -5,4 +5,6 @@
 .DS_Store
 Experiment_Data/fn_dataframe.R
 SPF/Data/*.dta
+SPF/SPFmicrodata2.xlsx
+SPF/prob2.xlsx
 SPF/scratch.R
