@@ -1,4 +1,4 @@
-"grpd_time_event","mean_sqDevFromRealization","mean_VarPredicted","mean_error","mean_disagreementEV","mean_time","event","meanEV","mean_disagreementEVMinusPersoni","mean_realization","dataSet"
+"grpd_time_event","avg_sqDevFromRealization","avg_VarPredicted","avg_error","avg_disagreementEV","time","event","avgEV","avg_disagreementEVMinusPersoni","avg_realization","dataSet"
 1,1.58546398809524,1.04248244047619,0.542981547619047,1.16951577026644,1968.875,1968,3.65505952380952,1.16934600458633,4.3,"PRPGDP"
 2,2.10444875,0.86307625,1.2413725,0.4163981875,1969.125,1969,3.60075,0.416278567222063,4.9,"PRPGDP"
 3,1.26319913793103,0.914897234195402,0.348301903735633,0.444174137931034,1969.375,1969,3.995,0.444037426900585,4.9,"PRPGDP"

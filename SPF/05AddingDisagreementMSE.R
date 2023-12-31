@@ -11,7 +11,8 @@ for (var in vars) {
   # First filter: Here, everyone is forced to agree -> not interesting.
   # Second filter: We don't have realization yet for future.
   data <-
-    subset(read.csv(file_path), resolution != 2 & !is.na(realization))
+    subset(read.csv(file_path), resolution != 2 &
+             !is.na(realization))
   
   # Would be great to smooth out the person's predictions somehow => not so discrete.
   data <- data %>%
@@ -86,11 +87,11 @@ for (var in vars) {
   data <- data %>%
     mutate(VarPredicted = VarPredictedAcross + (1 / 12) * binDiffMode)
   
-  # Now, what is our observation of this guys squared error FROM REALITY
+  # Now, what is our observation of this forecasters squared error FROM REALITY
   data$sqDevFromRealization <- (data$EV - data$realization) ^ 2
   
   # Drop variables starting with t_co
-  data <- data[,!grepl("^t_co", names(data))]
+  data <- data[, !grepl("^t_co", names(data))]
   
   # Now, for a given time/event, what is the disagreement (i.e., variance) between forecasters in terms of EVs?
   data <- data %>%
@@ -164,7 +165,7 @@ for (var in vars) {
     select(-all_of(cols_to_drop))
   # Collapsed across the bins.
   save_path <-
-    paste0("Data/collapsedVarInfoNotCompressed2_", var, ".csv")
+    paste0("Data/collapsedVarInfoNotCompressed_", var, ".csv")
   write.csv(data, file = save_path, row.names = FALSE)
   
   # Keep specific columns only.
@@ -188,20 +189,20 @@ for (var in vars) {
   data_collapsed <- data_selected %>%
     group_by(grpd_time_event) %>%
     summarise(
-      mean_sqDevFromRealization = mean(sqDevFromRealization, na.rm = TRUE),
-      mean_VarPredicted = mean(VarPredicted, na.rm = TRUE),
-      mean_error = mean(error, na.rm = TRUE),
-      mean_disagreementEV = mean(disagreementEV, na.rm = TRUE),
-      mean_time = mean(time, na.rm = TRUE),
+      avg_sqDevFromRealization = mean(sqDevFromRealization, na.rm = TRUE),
+      avg_VarPredicted = mean(VarPredicted, na.rm = TRUE),
+      avg_error = mean(error, na.rm = TRUE),
+      avg_disagreementEV = mean(disagreementEV, na.rm = TRUE),
+      time = mean(time, na.rm = TRUE),
       event = mean(event, na.rm = TRUE),
-      meanEV = mean(meanEV, na.rm = TRUE),
-      mean_disagreementEVMinusPersoni = mean(disagreementEVMinusPersoni, na.rm = TRUE),
-      mean_realization = mean(realization, na.rm = TRUE),
+      avgEV = mean(meanEV, na.rm = TRUE),
+      avg_disagreementEVMinusPersoni = mean(disagreementEVMinusPersoni, na.rm = TRUE),
+      avg_realization = mean(realization, na.rm = TRUE),
       dataSet = first(dataSet)
     ) %>%
     ungroup()
   
-  save_path <- paste0("Data/collapsedVarInfo2_", var, ".csv")
+  save_path <- paste0("Data/collapsedVarInfo_", var, ".csv")
   write.csv(data_collapsed, file = save_path, row.names = FALSE)
 }
 
@@ -212,14 +213,14 @@ combinedVarInfoNotCompressed <- data.frame(temp = numeric(0))
 combinedVarInfoWithBins <- data.frame(temp = numeric(0))
 
 # Save initial empty data frames
-write.csv(combinedVarInfo, "Data/combinedVarInfo2.csv", row.names = FALSE)
+write.csv(combinedVarInfo, "Data/combinedVarInfo.csv", row.names = FALSE)
 write.csv(
   combinedVarInfoNotCompressed,
-  "Data/combinedVarInfoNotCompressed2.csv",
+  "Data/combinedVarInfoNotCompressed.csv",
   row.names = FALSE
 )
 write.csv(combinedVarInfoWithBins,
-          "Data/combinedVarInfoWithBins2.csv",
+          "Data/combinedVarInfoWithBins.csv",
           row.names = FALSE)
 
 # Iterate over each variable
@@ -228,7 +229,7 @@ for (var in vars) {
   temp_data <-
     read.csv(paste0("Data/collapsedVarInfo_", var, ".csv"))
   combinedVarInfo <- rbind(combinedVarInfo, temp_data)
-  write.csv(combinedVarInfo, "Data/combinedVarInfo2.csv", row.names = FALSE)
+  write.csv(combinedVarInfo, "Data/combinedVarInfo.csv", row.names = FALSE)
   
   # Append to combinedVarInfoNotCompressed
   temp_data <-
@@ -237,7 +238,7 @@ for (var in vars) {
     rbind(combinedVarInfoNotCompressed, temp_data)
   write.csv(
     combinedVarInfoNotCompressed,
-    "Data/combinedVarInfoNotCompressed2.csv",
+    "Data/combinedVarInfoNotCompressed.csv",
     row.names = FALSE
   )
   
@@ -246,11 +247,11 @@ for (var in vars) {
     read.csv(paste0("Data/SPFmicrodataCleanedWithBinValues_", var, ".csv"))
   temp_data <-
     temp_data[!temp_data$resolution == 2 &
-                !is.na(temp_data$realization),]
+                !is.na(temp_data$realization), ]
   temp_data$dataSet <- var
   combinedVarInfoWithBins <-
     rbind(combinedVarInfoWithBins, temp_data)
   write.csv(combinedVarInfoWithBins,
-            "Data/combinedVarInfoWithBins2.csv",
+            "Data/combinedVarInfoWithBins.csv",
             row.names = FALSE)
 }
