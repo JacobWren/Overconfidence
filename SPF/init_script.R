@@ -13,6 +13,9 @@ library(sandwich)
 library(modelsummary)
 library(broom) 
 library(estimatr)
+library(car)
+library(multiwayvcov)
+library(stargazer)
 
 # Get and set working directory
 current_dir <- getwd()
