@@ -18,6 +18,7 @@ library(multiwayvcov)
 library(stargazer)
 library(scales)
 library(stats)
+library(cowplot)
 
 # Get and set working directory
 current_dir <- getwd()
