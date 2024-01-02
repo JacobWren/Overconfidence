@@ -16,6 +16,8 @@ library(estimatr)
 library(car)
 library(multiwayvcov)
 library(stargazer)
+library(scales)
+library(stats)
 
 # Get and set working directory
 current_dir <- getwd()
