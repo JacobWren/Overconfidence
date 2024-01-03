@@ -59,7 +59,7 @@ fn_calibration_regs <-
       return(list(beta = coefficients,
                   SEs = robust_se))
     } else {
-      # Calculate Wald test statistic for p = 1
+      # Calculate Wald test statistic for prob = 1
       p_coef <- coefficients["p"]
       p_se <- robust_se["p"]
       # Calculates the Wald test statistic to test if the coefficient of p is equal to 1.
@@ -69,7 +69,7 @@ fn_calibration_regs <-
       # Similarly, this part tests if the intercept of the model is equal to 0.
       intercept_coef <- coefficients["(Intercept)"]
       intercept_se <- robust_se["(Intercept)"]
-      wald_statistic_intercept <- intercept_coef ^ 2 / intercept_se ^ 2
+      wald_statistic_intercept <- (intercept_coef - 0) ^ 2 / intercept_se ^ 2
       
       # Calculate p-values for Chi-squared distribution with 1 degree of freedom.
       p_value_p <-
@@ -101,7 +101,6 @@ fn_calibration_regs <-
           model = lm_model,
           p_value_p = p_value_p,
           p_value_intercept = p_value_intercept,
-          df = nrow(data),
           coefficients = coefficients,
           robust_se = robust_se
         )
