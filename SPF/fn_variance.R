@@ -5,17 +5,26 @@ fn_variance_regs <-
            cluster = TRUE,
            include_intercept = TRUE,
            simpleReg = FALSE) {
-    
     # Choose the right formula based on 'normed' and 'include_intercept' flags.
     if (normed) {
-      formula_str <- ifelse(include_intercept, "errorNorm ~ disagreementEVMinusPersoni", "errorNorm ~ disagreementEVMinusPersoni - 1")
+      formula_str <-
+        ifelse(
+          include_intercept,
+          "errorNorm ~ disagreementEVMinusPersoni",
+          "errorNorm ~ disagreementEVMinusPersoni - 1"
+        )
     } else {
-      formula_str <- ifelse(include_intercept, "error ~ disagreementEVMinusPersoni", "error ~ disagreementEVMinusPersoni - 1")
+      formula_str <-
+        ifelse(
+          include_intercept,
+          "error ~ disagreementEVMinusPersoni",
+          "error ~ disagreementEVMinusPersoni - 1"
+        )
     }
     
     # Convert the string to a formula
     lm_formula <- as.formula(formula_str)
-
+    
     # Fit the linear model using lm (not lm_robust here, since we will calculate clustered robust SE separately).
     lm_model <- lm(lm_formula, data = data)
     
@@ -47,7 +56,8 @@ fn_variance_regs <-
       
       vcov_matrix_adjusted <- vcov_matrix * df_correction
       robust_se <- sqrt(diag(vcov_matrix_adjusted))
-    } else { # No cluster.
+    } else {
+      # No cluster.
       robust_se <- sqrt(diag(vcovHC(lm_model, type = "HC1")))
     }
     
@@ -59,7 +69,7 @@ fn_variance_regs <-
     print(coefficients)
     cat("\nRobust Standard Errors:\n")
     print(robust_se)
-
+    
     # Calculate Wald test statistic for disagreementEVMinusPersoni = 0
     disag_coef <- coefficients["disagreementEVMinusPersoni"]
     disag_se <- robust_se["disagreementEVMinusPersoni"]

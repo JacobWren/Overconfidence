@@ -1,4 +1,4 @@
-# Calibration functions: (1) calibration regressions; (2) smooth (binary) truth for calibration plot;
+# Calibration functions: (1) calibration regressions; (2) smooth (binary) trueBin for calibration plot;
 # (3) Traditional calibration bin scatter plot.
 
 fn_calibration_regs <-
@@ -11,9 +11,9 @@ fn_calibration_regs <-
       # Include all probCutDum* variables without an intercept.
       dummy_vars <- names(data)[grepl("probCutDum_", names(data))]
       formula_str <-
-        paste("truth ~", paste(dummy_vars, collapse = " + "), "- 1")
+        paste("trueBin ~", paste(dummy_vars, collapse = " + "), "- 1")
     } else {
-      formula_str <- "truth ~ p"
+      formula_str <- "trueBin ~ p"
     }
     lm_formula <- as.formula(formula_str)
     # Fit the linear model using lm (not lm_robust here, since we will calculate clustered robust SE separately).
@@ -69,7 +69,8 @@ fn_calibration_regs <-
       # Similarly, this part tests if the intercept of the model is equal to 0.
       intercept_coef <- coefficients["(Intercept)"]
       intercept_se <- robust_se["(Intercept)"]
-      wald_statistic_intercept <- (intercept_coef - 0) ^ 2 / intercept_se ^ 2
+      wald_statistic_intercept <-
+        (intercept_coef - 0) ^ 2 / intercept_se ^ 2
       
       # Calculate p-values for Chi-squared distribution with 1 degree of freedom.
       p_value_p <-
@@ -109,17 +110,26 @@ fn_calibration_regs <-
   }
 
 
+# Helper function.
+generate_trueBin_var <- function(df) {
+  # What bin captures the realized outcome?
+  df %>%
+    mutate(trueBin = ifelse(realization > binL &
+                              realization <= binH, TRUE, FALSE))
+}
+
+
 fn_smooth <- function(df, p_var, smoothed_name, spar_value) {
-  # Fit a curve through the data points represented by (p_var, truth). The smooth.spline function in R creates a
+  # Fit a curve through the data points represented by (prob_var, trueBin). The smooth.spline function in R creates a
   # spline that passes through or near these points in a way that minimizes the overall curvature of the line,
   # resulting in a smooth representation of the data.
   df %>%
     mutate(!!smoothed_name := {
       spline_fit <-
-        smooth.spline(get(p_var), truth, spar = spar_value)  # Fit the spline.
+        smooth.spline(get(p_var), trueBin, spar = spar_value)  # Fit the spline.
       predict(spline_fit, x = get(p_var))$y  # Predict using the original probs.
     }) %>%
-    select(!!sym(p_var),!!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed truth.
+    select(!!sym(p_var), !!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed trueBin.
     distinct()  # Remove duplicate rows.
 }
 
@@ -156,18 +166,19 @@ fn_calibration_bin_scatter <-
     # Creating dummy variables using model.matrix()
     dummy_vars <-
       # The - 1 in the formula means that we're not including the intercept.
-      model.matrix( ~ as.factor(probCutCodes) - 1, data = df) 
+      model.matrix(~ as.factor(probCutCodes) - 1, data = df)
     dummy_vars <- as.data.frame(dummy_vars)
     # Renaming the dummy variables.
-    names(dummy_vars) <- paste0("probCutDum_", seq_along(dummy_vars))
+    names(dummy_vars) <-
+      paste0("probCutDum_", seq_along(dummy_vars))
     # Binding the dummy variables to the original data frame.
     df <- cbind(df, dummy_vars)
     
     # Regression for error bars in the scatter plot.
     idvl_bin_scatter <-
-      fn_regs(df,
-              use_dummies = TRUE,
-              cluster_by_event_only = cluster_by_event_only)
+      fn_calibration_regs(df,
+                          use_dummies = TRUE,
+                          cluster_by_event_only = cluster_by_event_only)
     idvl_coefs <- idvl_bin_scatter$beta
     idvl_robt_se <- idvl_bin_scatter$SEs
     
@@ -201,7 +212,7 @@ fn_calibration_bin_scatter <-
         data = df,
         aes(x = pMean, y = pEst),
         color = "red",
-        size = 2.45
+        size = 1.7
       ) +
       geom_errorbar(
         data = df,
@@ -222,14 +233,18 @@ fn_calibration_bin_scatter <-
       theme_minimal() +
       theme(
         legend.position = "none",
-        plot.title = element_text(hjust = 0.5, size = 17),
+        plot.title = element_text(hjust = 0.5, size = 12),
         # Center the title and adjust size if needed
-        axis.title = element_text(size = 13),
-        axis.text = element_text(size = 12),
-        panel.background = element_rect(fill = "white", colour = NA), # White background
-        panel.border = element_blank(), # Remove border around the panel
-        axis.line.x = element_line(color = "black"), # Keep bottom axis line
-        axis.line.y = element_line(color = "black"), # Keep left axis line
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        panel.background = element_rect(fill = "white", colour = NA),
+        # White background
+        panel.border = element_blank(),
+        # Remove border around the panel
+        axis.line.x = element_line(color = "black"),
+        # Keep bottom axis line
+        axis.line.y = element_line(color = "black"),
+        # Keep left axis line
         plot.background = element_rect(fill = "white", color = NA) # White background for the entire plot area
       )
     
@@ -237,7 +252,7 @@ fn_calibration_bin_scatter <-
     file_name <-
       paste0("Graphs/calibrationBin", substr(title, 1, 3), ".png")
     
-    # Save the plot 
+    # Save the plot
     ggsave(
       file_name,
       bin_scatter,
