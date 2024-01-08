@@ -1,3 +1,8 @@
+# Get and set working directory
+current_dir <- getwd()
+if (!grepl("SPF$", current_dir)) {
+  setwd("SPF")
+}
 source("init_script.R")
 source("fn_bin_settings.R")
 

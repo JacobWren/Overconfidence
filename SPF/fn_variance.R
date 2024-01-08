@@ -28,7 +28,7 @@ fn_variance_regs <-
     # Fit the linear model using lm (not lm_robust here, since we will calculate clustered robust SE separately).
     lm_model <- lm(lm_formula, data = data)
     
-    # If simpleReg is TRUE, return just the model
+    # If simpleReg is TRUE, return just the model.
     if (simpleReg) {
       print("Averaged over dataSet/timeToResolution")
       print(summary(lm_model))

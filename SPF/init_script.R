@@ -19,12 +19,7 @@ library(stargazer)
 library(scales)
 library(stats)
 library(cowplot)
-
-# Get and set working directory
-current_dir <- getwd()
-if (!grepl("SPF$", current_dir)) {
-  setwd("SPF")
-}
+library(readxl)
 
 # Commonly used variable names
 # The survey’s six probability variables.

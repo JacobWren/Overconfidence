@@ -1,3 +1,8 @@
+# Get and set working directory
+current_dir <- getwd()
+if (!grepl("SPF$", current_dir)) {
+  setwd("SPF")
+}
 source("init_script.R")
 
 # Create  a dataset that looks like:
@@ -9,7 +14,7 @@ source("init_script.R")
 # See page 31 for the variable definitions:
 # https://www.philadelphiafed.org/-/media/frbp/assets/surveys-and-data/survey-of-professional-forecasters/spf-documentation.pdf?la=en&hash=F2D73A2CE0C3EA90E71A363719588D25
 # Example: The variable PRGDP is the mean probability that the percent change in GDP falls in a particular range.
-excel_file_path <- "SPFmicrodata.xlsx"
+excel_file_path <- "RawData/SPFmicrodata.xlsx"
 sheet_names <- excel_sheets(excel_file_path)
 
 for (var in vars) {
@@ -149,7 +154,8 @@ for (var in vars) {
         data[!(data$event == event_year &
                  data$time < time_threshold), ]
     }
-    # p23: "However, an error was made in the first-quarter surveys of 1985 and 1986
+    # p23: "However, an error was made in the first-quarter surveys of 1985 and 1986...
+    # In addition, in the first quarter of 1990, for the same variables listed above, the same error was made."
     data <- subset(data,!(time %in% c(1985.125, 1990.125)))
   }
   

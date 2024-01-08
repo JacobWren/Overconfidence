@@ -1,3 +1,8 @@
+# Get and set working directory
+current_dir <- getwd()
+if (!grepl("SPF$", current_dir)) {
+  setwd("SPF")
+}
 source("init_script.R")
 source("fn_bin_settings.R")
 
@@ -65,7 +70,7 @@ quick_tidy <- function(df) {
 }
 
 # 1 sheet per variable
-excel_file_path <- "RealizedOutcomes.xlsx"
+excel_file_path <- "RawData/RealizedOutcomes.xlsx"
 sheet_names <- excel_sheets(excel_file_path)
 
 for (var in sheet_names) {
