@@ -27,7 +27,7 @@ for (var in vars) {
     mutate(pAgg = mean(p, na.rm = TRUE)) %>%
     ungroup() %>%
     # Drop individual-level stuff.
-    select(-id,-industry,-p) %>%
+    select(-id, -industry, -p) %>%
     distinct() %>% # Remove duplicate rows.
     arrange(event, time, bin) %>%
     mutate(dataSet = var)
@@ -69,7 +69,7 @@ for (var in vars) {
   data <- data %>%
     mutate(sqDevFromRealizationAgg = (EV - realization) ^ 2) %>%
     # Drop columns that start with t_co
-    select(-starts_with("t_co"),-shouldBe1)
+    select(-starts_with("t_co"), -shouldBe1)
   
   data <- data %>%
     mutate(errorAgg = sqDevFromRealizationAgg - VarPredictedAgg) %>%
@@ -77,7 +77,7 @@ for (var in vars) {
     # One row per event-time (they're repeated across bins).
     distinct(grpd_time_event, .keep_all = TRUE) %>% # ".keep_all = TRUE" ensures that all other columns are retained
     # Drop columns that start with bin and pAgg
-    select(-starts_with("bin"),-starts_with("pAgg"))
+    select(-starts_with("bin"), -starts_with("pAgg"))
   
   # Let's get the measure of disagreement -> this is only accessible from the individual level data.
   collapsed_var_info <-
@@ -94,30 +94,6 @@ for (var in vars) {
   write.csv(data,
             paste0("Data/collapsedVarInfoAgg_", var, ".csv"),
             row.names = FALSE)
-  
-  # # Run the regressions:
-  # # Regression of error on a constant, with standard errors clustered by event.
-  # model1 <- lm(errorAgg ~ 1, data = data)
-  # # Regression of error on expected disagreement without an intercept, again with standard errors clustered by event
-  # model2 <- lm(errorAgg ~ avg_disagreementEV - 1, data = data)
-  #
-  # # Clustered robust standard errors
-  # robust_se1 <- vcovCL(model1, type = "HC1", cluster = ~event)
-  # robust_se2 <- vcovCL(model2, type = "HC1", cluster = ~event)
-  #
-  # # View model results
-  # print(var)
-  # print(msummary(list(model1, model2),
-  #          vcov = list(robust_se1, robust_se2),
-  #          conf_level = 0.95,  # Set the confidence interval level
-  #          statistic = c("conf.int",
-  #                        "s.e. = {std.error}",
-  #                        "t = {statistic}",
-  #                        "p = {p.value}"),
-  #          fmt = 7,
-  #          output = "markdown",
-  #          gof_omit = 'Log.Lik.|AIC|R2 Adj.|BIC|Std.Errors'))
-  # cat("\n")
   
   # Run the regressions:
   # Regression of error on a constant, with standard errors clustered by event.

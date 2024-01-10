@@ -111,7 +111,7 @@ fn_calibration_regs <-
 
 
 # Helper function.
-generate_trueBin_var <- function(df) {
+fn_generate_trueBin_var <- function(df) {
   # What bin captures the realized outcome?
   df %>%
     mutate(trueBin = ifelse(realization > binL &
@@ -129,7 +129,7 @@ fn_smooth <- function(df, p_var, smoothed_name, spar_value) {
         smooth.spline(get(p_var), trueBin, spar = spar_value)  # Fit the spline.
       predict(spline_fit, x = get(p_var))$y  # Predict using the original probs.
     }) %>%
-    select(!!sym(p_var), !!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed trueBin.
+    select(!!sym(p_var),!!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed trueBin.
     distinct()  # Remove duplicate rows.
 }
 
@@ -166,7 +166,7 @@ fn_calibration_bin_scatter <-
     # Creating dummy variables using model.matrix()
     dummy_vars <-
       # The - 1 in the formula means that we're not including the intercept.
-      model.matrix(~ as.factor(probCutCodes) - 1, data = df)
+      model.matrix( ~ as.factor(probCutCodes) - 1, data = df)
     dummy_vars <- as.data.frame(dummy_vars)
     # Renaming the dummy variables.
     names(dummy_vars) <-

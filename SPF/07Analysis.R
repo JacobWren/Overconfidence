@@ -1,3 +1,8 @@
+# Get and set working directory
+current_dir <- getwd()
+if (!grepl("SPF$", current_dir)) {
+  setwd("SPF")
+}
 source("init_script.R")
 source("fn_calibration.R")
 source("fn_variance.R")
@@ -12,7 +17,7 @@ source("fn_variance.R")
 # combinedVarInfoAgg => compressed over bins + has statistics like sq error, disagreement
 
 data_idvl <- read.csv("Data/combinedVarInfoWithBins.csv") %>%
-  generate_trueBin_var()
+  fn_generate_trueBin_var()
 
 # INDIVIDUAL
 idvl_calibration_regs <- fn_calibration_regs(data_idvl)
@@ -23,7 +28,7 @@ print(
 
 # AGGREGATE
 data_agg <- read.csv("Data/combinedVarInfoAggWithBins.csv") %>%
-  generate_trueBin_var()
+  fn_generate_trueBin_var()
 names(data_agg)[names(data_agg) == "pAgg"] <- "p" # For table
 agg_calibration_regs <-
   fn_calibration_regs(data_agg, cluster_by_event_only = TRUE)
@@ -67,31 +72,6 @@ stargazer_table_calib <-
 cat(stargazer_table_calib, file = "Results/calibration.tex")
 
 # Calibration: Plots
-
-# smooth_probs <- function(df, prob_var, smoothed_name, num_bins) {
-#   # num_bins: trying to have results similar to STATA's "running" pkg.
-#   # Add a new column 'p_bin' to 'df', categorizing 'p' into 'num_bins' bins
-#   df %>%
-#     mutate(
-#       # 'cut' divides 'p' into 'num_bins' bins for grouping; 'include.lowest = TRUE' ensures the lowest value is included
-#       p_bin = cut(get(prob_var), breaks = num_bins, include.lowest = TRUE, labels = FALSE)
-#     ) %>%
-#     # Group the dataframe by the newly created 'p_bin' column
-#     group_by(p_bin) %>%
-#     # For each group (bin), calculate the mean of 'trueBin' values, which gives the proportion of TRUEs in each bin
-#     mutate(
-#       !!smoothed_name := mean(trueBin, na.rm = TRUE)
-#     ) %>%
-#     # Remove the grouping, returning the dataframe to its original state
-#     ungroup() %>%
-#     select(!!sym(prob_var), !!sym(smoothed_name)) %>%
-#     distinct()  # Remove duplicate rows
-# }
-
-# # Individual level
-# data_idvl_smoothed <- smooth_probs(data_idvl, "p", "trueBinSmoothed", num_bins = 80)
-# # Aggregate level
-# data_agg_smoothed <- smooth_probs(data_agg, "pAgg", "trueBinSmoothedAgg", num_bins = 60)
 
 names(data_agg)[names(data_agg) == "p"] <- "pAgg" # Command z.
 # Smoothing operation on the "trueBin" variable against prob.
@@ -185,7 +165,6 @@ ggsave(
   height = 4.75
 )
 
-
 # Traditional calibration bin scatter plots.
 # Individual level
 idvl_bin_scatter <-
@@ -212,7 +191,6 @@ ggsave(
   width = 7,
   height = 3
 )
-
 
 # Variance Regressions
 # "Basic" Error On Disagreement Regressions.
@@ -243,7 +221,8 @@ data_collapsed <- data_error %>%
     forecastVar = first(forecastVar)
   )
 # Regressions
-var_regs_int_avg <- fn_variance_regs(data_collapsed, simpleReg = TRUE)
+var_regs_int_avg <-
+  fn_variance_regs(data_collapsed, simpleReg = TRUE)
 var_regs_noInt_avg <-
   fn_variance_regs(data_collapsed,
                    simpleReg = TRUE,
@@ -259,7 +238,7 @@ data_fully_collapsed <- data_error %>%
   )
 
 # Duplicate the single row of means, otherwise won't run the "regession".
-data_fully_collapsed <- data_fully_collapsed[rep(1, 2),]
+data_fully_collapsed <- data_fully_collapsed[rep(1, 2), ]
 var_regs_noInt_avgOnly <-
   fn_variance_regs(data_fully_collapsed,
                    simpleReg = TRUE,

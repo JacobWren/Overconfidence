@@ -11,7 +11,7 @@ library(purrr)
 library(lmtest)
 library(sandwich)
 library(modelsummary)
-library(broom) 
+library(broom)
 library(estimatr)
 library(car)
 library(multiwayvcov)
@@ -23,5 +23,5 @@ library(readxl)
 
 # Commonly used variable names
 # The survey’s six probability variables.
-vars <-
+vars_to_forecast <-
   c("PRPGDP", "PRCCPI", "PRCPCE", "PRUNEMP", "PRGDP", "RECESS")
