@@ -1,6 +1,4 @@
-# Initialization Script
-
-# Common libraries
+# Load libraries
 library(dplyr)
 library(data.table)
 library(haven)
@@ -20,8 +18,3 @@ library(scales)
 library(stats)
 library(cowplot)
 library(readxl)
-
-# Commonly used variable names
-# The survey’s six probability variables.
-vars_to_forecast <-
-  c("PRPGDP", "PRCCPI", "PRCPCE", "PRUNEMP", "PRGDP", "RECESS")

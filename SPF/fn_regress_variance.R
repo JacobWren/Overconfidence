@@ -1,24 +1,26 @@
+source("fn_reg_variable_names.R")
+
 fn_variance_regs <-
   # Regression and hypothesis tests for variance/error on disagreement.
   function(data,
            normed = FALSE,
            cluster = TRUE,
            include_intercept = TRUE,
-           simpleReg = FALSE) {
+           simple_reg = FALSE) {
     # Choose the right formula based on 'normed' and 'include_intercept' flags.
     if (normed) {
       formula_str <-
         ifelse(
           include_intercept,
-          "errorNorm ~ disagreementEVMinusPersoni",
-          "errorNorm ~ disagreementEVMinusPersoni - 1"
+          "errorNorm ~ disagreement_EV_minus_person_i",
+          "errorNorm ~ disagreement_EV_minus_person_i - 1"
         )
     } else {
       formula_str <-
         ifelse(
           include_intercept,
-          "error ~ disagreementEVMinusPersoni",
-          "error ~ disagreementEVMinusPersoni - 1"
+          "error ~ disagreement_EV_minus_person_i",
+          "error ~ disagreement_EV_minus_person_i - 1"
         )
     }
     
@@ -28,10 +30,12 @@ fn_variance_regs <-
     # Fit the linear model using lm (not lm_robust here, since we will calculate clustered robust SE separately).
     lm_model <- lm(lm_formula, data = data)
     
-    # If simpleReg is TRUE, return just the model.
-    if (simpleReg) {
-      print("Averaged over dataSet/timeToResolution")
+    # If simple_reg is TRUE, return just the model.
+    if (simple_reg) {
+      fn_reg_variable_names(lm_model, data)
+      print("Averaged over dataSet/time_to_resolution")
       print(summary(lm_model))
+      print("________________________________________________________________________________________________")
       return(lm_model)
     }
     
@@ -65,15 +69,16 @@ fn_variance_regs <-
     coefficients <- coef(lm_model)
     
     # Display the model summary with robust standard errors
+    fn_reg_variable_names(lm_model, data)
     cat("Coefficients:\n")
     print(coefficients)
     cat("\nRobust Standard Errors:\n")
     print(robust_se)
     
-    # Calculate Wald test statistic for disagreementEVMinusPersoni = 0
-    disag_coef <- coefficients["disagreementEVMinusPersoni"]
-    disag_se <- robust_se["disagreementEVMinusPersoni"]
-    # Calculates the Wald test statistic to test if the coefficient of disagreementEVMinusPersoni is equal to 0.
+    # Calculate Wald test statistic for disagreement_EV_minus_person_i = 0
+    disag_coef <- coefficients["disagreement_EV_minus_person_i"]
+    disag_se <- robust_se["disagreement_EV_minus_person_i"]
+    # Calculates the Wald test statistic to test if the coefficient of disagreement_EV_minus_person_i is equal to 0.
     # It uses the formula (Coefficient − Hypothesized Value) ^ 2 / Standard Error ^ 2
     wald_statistic_disag <- (disag_coef - 0) ^ 2 / disag_se ^ 2
     
@@ -83,12 +88,13 @@ fn_variance_regs <-
     
     # Print Wald test results
     cat(
-      "\nWald test for disagreementEVMinusPersoni = 0: Chi-squared statistic =",
+      "\nWald test for disagreement_EV_minus_person_i = 0: Chi-squared statistic =",
       wald_statistic_disag,
       ", p-value =",
       p_value,
       "\n"
     )
+    print("________________________________________________________________________________________________")
     
     # Return a list containing the model, Wald test p-value, and other relevant information.
     return(

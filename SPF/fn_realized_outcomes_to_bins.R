@@ -7,13 +7,13 @@ source("fn_binning.R")
 
 fn_quick_tidy <- function(df, pred_var) {
   # Cleaning helper.
-  df$binOutcome <- NA  # Initialize binOutcome with NAs
+  df$bin_outcome <- NA  # Initialize bin_outcome with NAs
   
   # Reorder columns
   cols <- names(df)
   new_order <-
-    c(cols[cols != "binOutcome" &
-             cols != pred_var], "binOutcome", pred_var)
+    c(cols[cols != "bin_outcome" &
+             cols != pred_var], "bin_outcome", pred_var)
   df <- df[new_order]
   df <- df %>% rename(year = "Year (Q4)")  # Rename YearQ4 to year
   return(df)
@@ -35,7 +35,7 @@ fn_realized_outcomes_to_bins <- function(sheet_names, data_path) {
       # Recess=1 if quarterly real GDP (or GNP, pre-1992) growth is less than 0.
       outcomes_data <- outcomes_data %>%
         mutate(event = Year + Quarter / 4,
-               binOutcome = RECESS)
+               bin_outcome = RECESS)
     }
     
     else if (forecast_var == "PRPGDP") {
@@ -102,7 +102,7 @@ fn_realized_outcomes_to_bins <- function(sheet_names, data_path) {
     }
     
     outcomes_data <- outcomes_data %>%
-      rename(bin = binOutcome) %>%  # for merging
+      rename(bin = bin_outcome) %>%  # for merging
       select(-Notes) # 'Notes' is a column to be dropped
     
     # Store the dataframe in the list

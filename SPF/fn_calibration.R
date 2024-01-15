@@ -1,4 +1,5 @@
-# Calibration functions: (1) calibration regressions; (2) smooth (binary) trueBin for calibration plot;
+source("fn_reg_variable_names.R")
+# Calibration functions: (1) calibration regressions; (2) smooth (binary) true_bin for calibration plot;
 # (3) Traditional calibration bin scatter plot.
 
 fn_calibration_regs <-
@@ -8,12 +9,12 @@ fn_calibration_regs <-
            cluster_by_event_only = FALSE) {
     # Determine which variables to include in the model.
     if (use_dummies) {
-      # Include all probCutDum* variables without an intercept.
-      dummy_vars <- names(data)[grepl("probCutDum_", names(data))]
+      # Include all prob_cut_dum* variables without an intercept.
+      dummy_vars <- names(data)[grepl("prob_cut_dum_", names(data))]
       formula_str <-
-        paste("trueBin ~", paste(dummy_vars, collapse = " + "), "- 1")
+        paste("true_bin ~", paste(dummy_vars, collapse = " + "), "- 1")
     } else {
-      formula_str <- "trueBin ~ p"
+      formula_str <- "true_bin ~ p"
     }
     lm_formula <- as.formula(formula_str)
     # Fit the linear model using lm (not lm_robust here, since we will calculate clustered robust SE separately).
@@ -49,15 +50,17 @@ fn_calibration_regs <-
     coefficients <- coef(lm_model)
     
     # Display the model summary with robust standard errors
+    fn_reg_variable_names(lm_model, data)
     cat("Coefficients:\n")
     print(coefficients)
     cat("\nRobust Standard Errors:\n")
     print(robust_se)
     
     if (use_dummies) {
+      print("________________________________________________________________________________________________")
       # Return results needed for traditional calibration bin scatter plot.
       return(list(beta = coefficients,
-                  SEs = robust_se))
+                  se = robust_se))
     } else {
       # Calculate Wald test statistic for prob = 1
       p_coef <- coefficients["p"]
@@ -95,6 +98,7 @@ fn_calibration_regs <-
         p_value_intercept,
         "\n"
       )
+      print("________________________________________________________________________________________________")
       
       # Return a list containing the model, Wald test p-values, and other relevant information.
       return(
@@ -111,25 +115,25 @@ fn_calibration_regs <-
 
 
 # Helper function.
-fn_generate_trueBin_var <- function(df) {
+fn_generate_true_bin_var <- function(df) {
   # What bin captures the realized outcome?
   df %>%
-    mutate(trueBin = ifelse(realization > binL &
-                              realization <= binH, TRUE, FALSE))
+    mutate(true_bin = ifelse(realization > bin_l &
+                              realization <= bin_h, TRUE, FALSE))
 }
 
 
 fn_smooth <- function(df, p_var, smoothed_name, spar_value) {
-  # Fit a curve through the data points represented by (prob_var, trueBin). The smooth.spline function in R creates a
+  # Fit a curve through the data points represented by (prob_var, true_bin). The smooth.spline function in R creates a
   # spline that passes through or near these points in a way that minimizes the overall curvature of the line,
   # resulting in a smooth representation of the data.
   df %>%
     mutate(!!smoothed_name := {
       spline_fit <-
-        smooth.spline(get(p_var), trueBin, spar = spar_value)  # Fit the spline.
+        smooth.spline(get(p_var), true_bin, spar = spar_value)  # Fit the spline.
       predict(spline_fit, x = get(p_var))$y  # Predict using the original probs.
     }) %>%
-    select(!!sym(p_var),!!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed trueBin.
+    select(!!sym(p_var),!!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed true_bin.
     distinct()  # Remove duplicate rows.
 }
 
@@ -145,7 +149,7 @@ fn_calibration_bin_scatter <-
     df <- df %>%
       mutate(
         # Dividing the prob variable into bins based on the specified breakpoints.
-        probCut = cut(
+        prob_cut = cut(
           !!sym(prob_var),
           breaks = c(
             -.00001,
@@ -160,17 +164,17 @@ fn_calibration_bin_scatter <-
           include.lowest = FALSE,
           labels = FALSE
         ),
-        probCutCodes = as.integer(probCut) + 1
+        prob_cut_codes = as.integer(prob_cut) + 1
       )
-    print(table(df$probCut))
+    # print(table(df$prob_cut))
     # Creating dummy variables using model.matrix()
     dummy_vars <-
       # The - 1 in the formula means that we're not including the intercept.
-      model.matrix( ~ as.factor(probCutCodes) - 1, data = df)
+      model.matrix( ~ as.factor(prob_cut_codes) - 1, data = df)
     dummy_vars <- as.data.frame(dummy_vars)
     # Renaming the dummy variables.
     names(dummy_vars) <-
-      paste0("probCutDum_", seq_along(dummy_vars))
+      paste0("prob_cut_dum_", seq_along(dummy_vars))
     # Binding the dummy variables to the original data frame.
     df <- cbind(df, dummy_vars)
     
@@ -180,43 +184,43 @@ fn_calibration_bin_scatter <-
                           use_dummies = TRUE,
                           cluster_by_event_only = cluster_by_event_only)
     idvl_coefs <- idvl_bin_scatter$beta
-    idvl_robt_se <- idvl_bin_scatter$SEs
+    idvl_robt_se <- idvl_bin_scatter$se
     
-    df$probCut <- as.factor(df$probCut)
+    df$prob_cut <- as.factor(df$prob_cut)
     
     # Calculate the statistics for calibration scatter plot by bin.
     df <- df %>%
-      group_by(probCut) %>%
+      group_by(prob_cut) %>%
       mutate(
-        pMean = mean(!!sym(prob_var), na.rm = TRUE),
-        pEst = idvl_coefs[paste0("probCutDum_", probCut)],
-        pEstLower = idvl_coefs[paste0("probCutDum_", probCut)] - 1.96 * idvl_robt_se[paste0("probCutDum_", probCut)],
-        pEstUpper = idvl_coefs[paste0("probCutDum_", probCut)] + 1.96 * idvl_robt_se[paste0("probCutDum_", probCut)]
+        p_mean = mean(!!sym(prob_var), na.rm = TRUE),
+        p_est = idvl_coefs[paste0("prob_cut_dum_", prob_cut)],
+        p_est_lower = idvl_coefs[paste0("prob_cut_dum_", prob_cut)] - 1.96 * idvl_robt_se[paste0("prob_cut_dum_", prob_cut)],
+        p_est_upper = idvl_coefs[paste0("prob_cut_dum_", prob_cut)] + 1.96 * idvl_robt_se[paste0("prob_cut_dum_", prob_cut)]
       )
     
     # Append the point (0.75, 0.75) to extend the line -- just for cosmetic purposes.
-    EndPoint <- 0.75
+    end_point <- 0.75
     line_data <-
-      rbind(df, data.frame(pMean = EndPoint, pEst = EndPoint))
+      rbind(df, data.frame(p_mean = end_point, p_est = end_point))
     
     # Create the plot
     bin_scatter <- ggplot() +
       geom_line(
         data = line_data,
-        aes(x = pMean, y = pMean),
+        aes(x = p_mean, y = p_mean),
         color = "gray",
         linetype = "dashed",
-        size = 0.75
+        linewidth = 0.75
       ) +
       geom_point(
         data = df,
-        aes(x = pMean, y = pEst),
+        aes(x = p_mean, y = p_est),
         color = "red",
         size = 1.7
       ) +
       geom_errorbar(
         data = df,
-        aes(x = pMean, ymin = pEstLower, ymax = pEstUpper),
+        aes(x = p_mean, ymin = p_est_lower, ymax = p_est_upper),
         color = "gray50",
         width = 0.028,
         size = .41
@@ -224,11 +228,11 @@ fn_calibration_bin_scatter <-
       labs(title = title, x = "Belief", y = "Empirical Probability") +
       scale_x_continuous("Belief",
                          labels = percent_format(),
-                         breaks = seq(0, EndPoint, by = 0.25)) +
+                         breaks = seq(0, end_point, by = 0.25)) +
       scale_y_continuous(
         "Empirical Probability",
         labels = percent_format(),
-        breaks = seq(0, EndPoint, by = 0.25)
+        breaks = seq(0, end_point, by = 0.25)
       ) +
       theme_minimal() +
       theme(
@@ -250,7 +254,7 @@ fn_calibration_bin_scatter <-
     
     # Generate file name based on the title string
     file_name <-
-      paste0("Graphs/calibrationBin", substr(title, 1, 3), ".png")
+      paste0("Graphs/calibration_bin_", substr(title, 1, 3), ".png")
     
     # Save the plot
     ggsave(

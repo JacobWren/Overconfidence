@@ -3,19 +3,19 @@ source("fn_bin_settings.R")
 # Want a dataset that looks like:
 # event bin numBins prob timeToEnd
 
-fn_bin_end_points <- function(spf_micro_ind) {
+fn_bin_end_points <- function(spf_micro_ind, pred_vars) {
   # Initialize an empty list to store data frames by forecasting variable.
   binned_nums_data <- list()
   
-  for (pred_var in vars_to_forecast) {
+  for (pred_var in pred_vars) {
     spf_data <- spf_micro_ind[[pred_var]]
     
-    spf_data$binL <- NA # Initialize.
-    spf_data$binH <- NA
+    spf_data$bin_l <- NA # Initialize.
+    spf_data$bin_h <- NA
     
     if (pred_var == "RECESS") {
-      spf_data$binL <- 1
-      spf_data$binH <- 1
+      spf_data$bin_l <- 1
+      spf_data$bin_h <- 1
     }
     else {
       # Grab the appropriate bin settings.
@@ -56,8 +56,8 @@ fn_bin_end_points <- function(spf_micro_ind) {
               (spf_data$event >= year_threshold[[1]]) &
               (spf_data$event < year_threshold[[2]])
           }
-          spf_data$binH[condition] <- bins[x]
-          spf_data$binL[condition] <- bins[x + 1]
+          spf_data$bin_h[condition] <- bins[x]
+          spf_data$bin_l[condition] <- bins[x + 1]
         }
       }
     }
@@ -67,23 +67,30 @@ fn_bin_end_points <- function(spf_micro_ind) {
     spf_data$incorrect <-
       with(spf_data,
            ifelse(p == 1 &
-                    resolution == 2, realization > binH |
-                    realization < binL, NA))
+                    resolution == 2, realization > bin_h |
+                    realization < bin_l, NA))
     n_incorrect <- sum(spf_data$incorrect, na.rm = TRUE)
     if (n_incorrect > 0) {
       print(paste("There are:", n_incorrect, "errors.")) # :(
     }
     spf_data <- spf_data[,-which(names(spf_data) == "incorrect")]
     
-    spf_data$binValue <-
-      0.5 * spf_data$binH + 0.5 * spf_data$binL # Equally weighted average.
-    spf_data$binValue[spf_data$binH > 100] <- spf_data$binL[spf_data$binH > 100] + 1
-    spf_data$binValue[spf_data$binL < -100] <- spf_data$binH[spf_data$binL < -100] - 1
+    spf_data$bin_value <-
+      0.5 * spf_data$bin_h + 0.5 * spf_data$bin_l # Equally weighted average.
+    spf_data$bin_value[spf_data$bin_h > 100] <- spf_data$bin_l[spf_data$bin_h > 100] + 1
+    spf_data$bin_value[spf_data$bin_l < -100] <- spf_data$bin_h[spf_data$bin_l < -100] - 1
     
     # # Save the Data
     # file_path <-
     #   paste0("Data/SPFmicrodataCleanedWithBinValues_", pred_var, ".csv")
     # write.csv(spf_data, file_path, row.names = FALSE)
+    
+    # First filter: Here, everyone is forced to agree -> not interesting.
+    # Second filter: We don't have realization yet for future.
+    spf_data <-
+      subset(spf_data, resolution != 2 &
+               !is.na(realization))
+    
     binned_nums_data[[pred_var]] <- spf_data
   }
   return(binned_nums_data)

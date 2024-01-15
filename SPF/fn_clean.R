@@ -9,12 +9,11 @@
 # Example: The variable PRGDP is the mean probability that the percent change in GDP falls in a particular range.
 
 
-fn_clean <- function(data_path, binned_reals) {
+fn_clean <- function(data_path, binned_reals, pred_vars) {
   # Initialize empty lists to store data
   cleaned_ind <- list() # Individual forecaster
   cleaned_agg <- list() # Average forecaster
-  
-  for (pred_var in vars_to_forecast) {
+  for (pred_var in pred_vars) {
     # Read the data
     data <-
       read_excel(data_path, sheet = pred_var)
@@ -376,5 +375,5 @@ fn_clean <- function(data_path, binned_reals) {
     }
   }
   # Return both lists as a named list
-  return(list("Ind" = cleaned_ind, "Agg" = cleaned_agg))
+  return(list("ind" = cleaned_ind, "agg" = cleaned_agg))
 }
