@@ -3,8 +3,11 @@
 .RData
 .Ruserdata
 .DS_Store
+.Rapp.history
+overprecision.Rproj
 Experiment_Data/fn_dataframe.R
-SPF/Data/*.dta
-SPF/SPFmicrodata2.xlsx
-SPF/prob2.xlsx
-SPF/scratch.R
+SPF/Data
+SPF/Graphs2
+SPF/Results2
+SPF/Scratch
+SPF/density.gph
