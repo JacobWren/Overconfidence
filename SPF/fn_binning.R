@@ -1,4 +1,6 @@
 # Apply binning logic -- match a realization to a bin.
+
+
 fn_bin_outcome <-
   function(df,
            var_name,
@@ -36,8 +38,8 @@ fn_bin_outcome <-
         else if (is.na(year_threshold)) {
           # No applicable year
           df$bin_outcome <- ifelse(df[[var_name]] < upper_limit &
-                                    df[[var_name]] >= lower_limit,
-                                  i, df$bin_outcome)
+                                     df[[var_name]] >= lower_limit,
+                                   i, df$bin_outcome)
         }
       }
     }

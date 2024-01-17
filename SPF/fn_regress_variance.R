@@ -1,5 +1,6 @@
 source("fn_reg_variable_names.R")
 
+
 fn_variance_regs <-
   # Regression and hypothesis tests for variance/error on disagreement.
   function(data,
@@ -12,15 +13,15 @@ fn_variance_regs <-
       formula_str <-
         ifelse(
           include_intercept,
-          "errorNorm ~ disagreement_EV_minus_person_i",
-          "errorNorm ~ disagreement_EV_minus_person_i - 1"
+          "errorNorm ~ disagreement_EV_minus_forecaster_i",
+          "errorNorm ~ disagreement_EV_minus_forecaster_i - 1"
         )
     } else {
       formula_str <-
         ifelse(
           include_intercept,
-          "error ~ disagreement_EV_minus_person_i",
-          "error ~ disagreement_EV_minus_person_i - 1"
+          "error ~ disagreement_EV_minus_forecaster_i",
+          "error ~ disagreement_EV_minus_forecaster_i - 1"
         )
     }
     
@@ -35,7 +36,9 @@ fn_variance_regs <-
       fn_reg_variable_names(lm_model, data)
       print("Averaged over dataSet/time_to_resolution")
       print(summary(lm_model))
-      print("________________________________________________________________________________________________")
+      print(
+        "________________________________________________________________________________________________"
+      )
       return(lm_model)
     }
     
@@ -75,10 +78,10 @@ fn_variance_regs <-
     cat("\nRobust Standard Errors:\n")
     print(robust_se)
     
-    # Calculate Wald test statistic for disagreement_EV_minus_person_i = 0
-    disag_coef <- coefficients["disagreement_EV_minus_person_i"]
-    disag_se <- robust_se["disagreement_EV_minus_person_i"]
-    # Calculates the Wald test statistic to test if the coefficient of disagreement_EV_minus_person_i is equal to 0.
+    # Calculate Wald test statistic for disagreement_EV_minus_forecaster_i = 0
+    disag_coef <- coefficients["disagreement_EV_minus_forecaster_i"]
+    disag_se <- robust_se["disagreement_EV_minus_forecaster_i"]
+    # Calculates the Wald test statistic to test if the coefficient of disagreement_EV_minus_forecaster_i is equal to 0.
     # It uses the formula (Coefficient − Hypothesized Value) ^ 2 / Standard Error ^ 2
     wald_statistic_disag <- (disag_coef - 0) ^ 2 / disag_se ^ 2
     
@@ -88,13 +91,15 @@ fn_variance_regs <-
     
     # Print Wald test results
     cat(
-      "\nWald test for disagreement_EV_minus_person_i = 0: Chi-squared statistic =",
+      "\nWald test for disagreement_EV_minus_forecaster_i = 0: Chi-squared statistic =",
       wald_statistic_disag,
       ", p-value =",
       p_value,
       "\n"
     )
-    print("________________________________________________________________________________________________")
+    print(
+      "________________________________________________________________________________________________"
+    )
     
     # Return a list containing the model, Wald test p-value, and other relevant information.
     return(

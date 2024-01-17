@@ -9,10 +9,12 @@ fn_reg_variable_names <- function(model, dataset) {
   
   # Extracting independent variables
   independent_vars <- all.vars(model_formula)[-1]
-  if(length(independent_vars) == 0 || independent_vars[1] == "1") {
+  if (length(independent_vars) == 0 || independent_vars[1] == "1") {
     independent_vars <- "None (Intercept only model)"
   }
-  print("________________________________________________________________________________________________")
+  print(
+    "________________________________________________________________________________________________"
+  )
   # Print dependent and independent variable names
   cat("Dependent Variable:", dependent_var, "\n")
   cat("Independent Variables:", independent_vars, "\n")

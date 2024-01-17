@@ -1,69 +1,68 @@
-# Create  a dataset that looks like:
-# event bin numBins prob timeToEnd
 # Lot's of "one-off" cleaning lines/corrections, etc. -> hard to "systematize".
 
 # An Excel workbook with multiple worksheets contains the individual responses of the forecasters:
-# SPFmicrodata.xlsx. Each worksheet in the workbook covers the surveys of a different variable from 1968:Q4 to present.
+# SPFmicrodata.xlsx. Each worksheet in the workbook covers the surveys of a different variable.
 # See page 31 for the variable definitions:
 # https://www.philadelphiafed.org/-/media/frbp/assets/surveys-and-data/survey-of-professional-forecasters/spf-documentation.pdf?la=en&hash=F2D73A2CE0C3EA90E71A363719588D25
-# Example: The variable PRGDP is the mean probability that the percent change in GDP falls in a particular range.
+# Example: The variable PRGDP is the probability that the percent change in GDP falls in a particular range.
 
-
-fn_clean <- function(data_path, binned_reals, pred_vars) {
+fn_clean <- function(SPF_path, pred_vars) {
   # Initialize empty lists to store data
-  cleaned_ind <- list() # Individual forecaster
-  cleaned_agg <- list() # Average forecaster
+  cleaned <- list()
   for (pred_var in pred_vars) {
     # Read the data
-    data <-
-      read_excel(data_path, sheet = pred_var)
+    df_spf <-
+      read_excel(SPF_path, sheet = pred_var)
     
     # Reshape from wide to long format.
-    data <- melt(
-      setDT(data),
+    df_spf <- melt(
+      setDT(df_spf),
       id.vars = c("YEAR", "QUARTER", "ID", "INDUSTRY"),
       variable.name = "bin",
       value.name = "p"
     )
     
     # Ordering the data to stack values row-wise for each set of id variables
-    data <- data[order(YEAR, QUARTER, ID, INDUSTRY, bin)]
+    df_spf <- df_spf[order(YEAR, QUARTER, ID, INDUSTRY, bin)]
     
     # Convert the factor to character
-    data$bin <- as.character(data$bin)
+    df_spf$bin <- as.character(df_spf$bin)
     
     # Extract the final number using regular expressions.
     # This regular expression looks for one or more digits (\d+) at the end of the string ($).
     # Could use running count...
     # E.g., PRPGDP5 -> 5
-    data$bin <- as.numeric(gsub("[^0-9]", "", data$bin))
+    df_spf$bin <- as.numeric(gsub("[^0-9]", "", df_spf$bin))
     
     # Convert column names to lowercase
-    names(data) <- tolower(names(data))
+    names(df_spf) <- tolower(names(df_spf))
     
     # Remove rows where year contains missing values.
-    data <- subset(data, !is.na(year) & p != "#N/A")
+    df_spf <- subset(df_spf, !is.na(year) & p != "#N/A")
     
     # Convert to numeric
-    data$p <- as.numeric(data$p) / 100 # bounded in [0,1]
-    data$time <-
-      data$year + (1 / 8) + (data$quarter - 1) / 4
+    df_spf$p <- as.numeric(df_spf$p) / 100 # bounded in [0,1]
+    df_spf$time <-
+      df_spf$year + (1 / 8) + (df_spf$quarter - 1) / 4
     
     if (pred_var != "RECESS") {
-      data$event <- data$year # An event is demarcated by a point in time.
+      df_spf$event <-
+        df_spf$year # An event is demarcated by a point in time.
     }
     
     if (pred_var == "PRPGDP") {
       # First condition set
       condition1 <-
-        data$time > 1981.5 & data$time < 1992 & data$bin > 6
-      data$event[condition1] <- data$year[condition1] + 1
-      data$bin[condition1] <- data$bin[condition1] - 6
+        # Consequence of a changing forecast horizon -- probability projections for the current year
+        # and the next.
+        df_spf$time > 1981.5 & df_spf$time < 1992 & df_spf$bin > 6
+      df_spf$event[condition1] <- df_spf$year[condition1] + 1
+      df_spf$bin[condition1] <- df_spf$bin[condition1] - 6
       
       # Second condition set
-      condition2 <- data$time > 1992 & data$bin > 10
-      data$event[condition2] <- data$year[condition2] + 1
-      data$bin[condition2] <- data$bin[condition2] - 10
+      condition2 <- df_spf$time > 1992 & df_spf$bin > 10
+      df_spf$event[condition2] <- df_spf$year[condition2] + 1
+      df_spf$bin[condition2] <- df_spf$bin[condition2] - 10
       
       # Each element in the list is a pair: (event year, time threshold)
       conditions <-
@@ -80,24 +79,26 @@ fn_clean <- function(data_path, binned_reals, pred_vars) {
       for (condition in conditions) {
         event_year <- condition[1]
         time_threshold <- condition[2]
-        data <-
-          data[!(data$event == event_year &
-                   data$time < time_threshold),]
+        df_spf <-
+          df_spf[!(df_spf$event == event_year &
+                     df_spf$time < time_threshold),]
       }
     }
     
     else if (pred_var == "PRGDP") {
       # First condition set
       condition1 <-
-        data$time > 1981.5 & data$time < 1992 & data$bin > 6
-      data$event <- ifelse(condition1, data$year + 1, data$event)
-      data$bin <- ifelse(condition1, data$bin - 6, data$bin)
+        df_spf$time > 1981.5 & df_spf$time < 1992 & df_spf$bin > 6
+      df_spf$event <-
+        ifelse(condition1, df_spf$year + 1, df_spf$event)
+      df_spf$bin <- ifelse(condition1, df_spf$bin - 6, df_spf$bin)
       
       # Second condition set
       condition2 <-
-        data$time > 1992 & data$time < 2009.25 & data$bin > 10
-      data$event <- ifelse(condition2, data$year + 1, data$event)
-      data$bin <- ifelse(condition2, data$bin - 10, data$bin)
+        df_spf$time > 1992 & df_spf$time < 2009.25 & df_spf$bin > 10
+      df_spf$event <-
+        ifelse(condition2, df_spf$year + 1, df_spf$event)
+      df_spf$bin <- ifelse(condition2, df_spf$bin - 10, df_spf$bin)
       
       # Define the condition parameters
       conditions <- list(
@@ -118,15 +119,18 @@ fn_clean <- function(data_path, binned_reals, pred_vars) {
         
         # Define the common condition
         common_condition <-
-          data$time > 2009.25 &
-          data$bin > lower_bound & data$bin <= upper_bound
+          df_spf$time > 2009.25 &
+          df_spf$bin > lower_bound & df_spf$bin <= upper_bound
         
         # Update event or bin
         if (col_name == "event") {
-          data$event <-
-            ifelse(common_condition, data$year + add_val, data$event)
+          df_spf$event <-
+            ifelse(common_condition,
+                   df_spf$year + add_val,
+                   df_spf$event)
         } else if (col_name == "bin") {
-          data$bin <- ifelse(common_condition, data$bin + add_val, data$bin)
+          df_spf$bin <-
+            ifelse(common_condition, df_spf$bin + add_val, df_spf$bin)
         }
       }
       
@@ -146,21 +150,22 @@ fn_clean <- function(data_path, binned_reals, pred_vars) {
       for (condition in conditions) {
         event_year <- condition[1]
         time_threshold <- condition[2]
-        data <-
-          data[!(data$event == event_year &
-                   data$time < time_threshold),]
+        df_spf <-
+          df_spf[!(df_spf$event == event_year &
+                     df_spf$time < time_threshold),]
       }
       # p23: "However, an error was made in the first-quarter surveys of 1985 and 1986...
       # In addition, in the first quarter of 1990, for the same variables listed above, the same error was made."
-      data <- subset(data, !(time %in% c(1985.125, 1990.125)))
+      df_spf <- subset(df_spf, !(time %in% c(1985.125, 1990.125)))
     }
     
     else if (pred_var == "PRCCPI" | pred_var == "PRCPCE")  {
       # Define the condition
-      condition <- data$bin > 10
+      condition <- df_spf$bin > 10
       # Update event and bin using the defined condition
-      data$event <- ifelse(condition, data$year + 1, data$event)
-      data$bin <- ifelse(condition, data$bin - 10, data$bin)
+      df_spf$event <-
+        ifelse(condition, df_spf$year + 1, df_spf$event)
+      df_spf$bin <- ifelse(condition, df_spf$bin - 10, df_spf$bin)
     }
     
     else if (pred_var == "PRUNEMP") {
@@ -182,198 +187,40 @@ fn_clean <- function(data_path, binned_reals, pred_vars) {
         upper_bound <- cond[[4]]     # Upper bound for bin
         
         if (col_name == "event") {
-          data$event <-
+          df_spf$event <-
             ifelse(
-              data$bin > lower_bound & data$bin <= upper_bound,
-              data$year + add_val,
-              data$event
+              df_spf$bin > lower_bound & df_spf$bin <= upper_bound,
+              df_spf$year + add_val,
+              df_spf$event
             )
         } else if (col_name == "bin") {
-          data$bin <-
-            ifelse(data$bin > lower_bound & data$bin <= upper_bound,
-                   data$bin + add_val,
-                   data$bin)
+          df_spf$bin <-
+            ifelse(
+              df_spf$bin > lower_bound & df_spf$bin <= upper_bound,
+              df_spf$bin + add_val,
+              df_spf$bin
+            )
         }
       }
-      data <-
-        data[!(data$event >= 2014 &
-                 data$time < 2014),]
-      data <-
-        data[!(data$event >= 2020 &
-                 data$time < 2020.25),]
+      df_spf <-
+        df_spf[!(df_spf$event >= 2014 &
+                   df_spf$time < 2014),]
+      df_spf <-
+        df_spf[!(df_spf$event >= 2020 &
+                   df_spf$time < 2020.25),]
     }
     if (pred_var == "RECESS") {
-      data$event <- data$time - (1 / 8) + (data$bin / 4)
-      data$bin <- 1
+      df_spf$event <- df_spf$time - (1 / 8) + (df_spf$bin / 4)
+      df_spf$bin <- 1
     }
     
     # Convert the data.table to a data frame and move 'event' to the first position.
-    data <- data %>%
+    df_spf <- df_spf %>%
       as.data.frame() %>%
       select(event, setdiff(names(.), "event"))
     
-    # The data will first be sorted by id, then by event within each id, then by time within each event,
-    # and finally by bin within each time.
-    data <- data %>%
-      arrange(id, event, time, bin) %>%
-      select(-year) # Drop year
-    
-    # Group by id and event and create a new variable grpd_id_event that assigns a unique group identifier
-    data <- data %>%
-      group_by(id, event) %>%
-      mutate(grpd_id_event = cur_group_id())
-    # Calculate the maximum value of the time variable within each group defined by the grpd_id_event variable.
-    data <- data %>%
-      group_by(grpd_id_event) %>%
-      mutate(time_max = max(time)) %>%
-      ungroup()
-    
-    data <- data %>% # Setting the next operation up.
-      mutate(time_dup = ifelse(time_max == time, 2, 1))
-    
-    # Expand the dataframe based on the time_dup variable/Duplicate the rows according to the values in t_dup
-    # and create a duplicate variable that distinguishes between the original and duplicated rows.
-    data <- data %>%
-      mutate(row_id = row_number()) %>%  # Create a temporary identifier for each row
-      uncount(time_dup) %>%  # Duplicate rows
-      group_by(row_id) %>%  # Group by the temporary identifier
-      mutate(duplicate = row_number()) %>%  # Number each row within its group
-      ungroup() %>%  # Remove grouping
-      select(-row_id)  # Remove the temporary identifier
-    
-    data <- data %>%
-      arrange(grpd_id_event, time, duplicate)
-    
-    # annoyingly, for recess event=1983 means ending 4th quarter 1982 but, for GDP, event=1982 means ending 4th quarter 1982.
-    data <- data %>%
-      mutate(
-        time = case_when(
-          duplicate == 2 & pred_var == "RECESS"  ~ event - 0.001,
-          duplicate == 2 & pred_var != "RECESS"  ~ event + 0.999,
-          TRUE                              ~ time
-        )
-      )
-    # Passed in data from fn_realized_outcomes_to_bins().
-    realized_outcomes <- binned_reals[[pred_var]]
-    
-    # Add a source indicator to each dataframe.
-    data$in_data <- TRUE
-    realized_outcomes$in_ro <- TRUE
-    
-    # Perform the merge
-    data <- data %>%
-      full_join(realized_outcomes, by = c("event", "bin")) %>%
-      arrange(event, bin)
-    
-    # Mimic statas' _merge indicator
-    data <- data %>%
-      mutate(statas_merge = case_when(
-        !is.na(in_data) & is.na(in_ro) ~ 1,
-        # Present only in data
-        is.na(in_data) &
-          !is.na(in_ro) ~ 2,
-        # Present only in realized_outcomes
-        TRUE ~ 3  # Present in both
-      ))
-    
-    data <- select(data, -in_data, -in_ro)
-    
-    data <-
-      data %>%  # Drop rows where statas' _merge is 2 (only in realized_outcomes).
-      filter(!(pred_var == "PRGDP" &
-                 duplicate == 2 & event == 1981), statas_merge != 2)
-    
-    data <- data %>%
-      mutate(p = ifelse(duplicate == 2, 0, p))
-    
-    data <- data %>%
-      mutate(p = ifelse(duplicate == 2 & statas_merge == 3, 1, p))
-    
-    # For future events, we don't have resolution -> need to delete that resolution entry.
-    data <- data %>%
-      group_by(id, event, time) %>%
-      mutate(grpd_id_event_time = cur_group_id(),
-             # Assign a unique ID to each group
-             total = sum(p, na.rm = TRUE)) %>%  # Sum p within each group
-      ungroup() %>% # Remove grouping
-      filter(total != 0) %>% # For ones without resolution, all p's will be 0.
-      select(-grpd_id_event_time, -total)
-    
-    # Now get variables that are correct.
-    data$resolution <- data$duplicate
-    data <-
-      select(data, -time_max, -duplicate, -statas_merge, -grpd_id_event)
-    data <- data %>%
-      arrange(id, event, time, bin) # sort
-    data <- data %>%
-      mutate(quarter = ifelse(resolution == 2, 5, quarter))
-    
-    # Get resolution everywhere in an event
-    data <- data %>%
-      group_by(event) %>%
-      mutate(realization = mean(!!sym(pred_var), na.rm = TRUE)) %>%
-      ungroup() %>%
-      select(-all_of(pred_var))
-    
-    data <- data %>%
-      arrange(id, event, time, bin) # sort
-    
-    # file_path <-
-    #   paste0("Data/SPFmicrodataCleaned_", pred_var, ".csv")
-    # write.csv(data, file_path, row.names = FALSE) # Save data.
-    
     # Store the dataframe in the list
-    cleaned_ind[[pred_var]] <- data
-    
-    data_agg <- data %>%
-      group_by(time, event, bin) %>%
-      mutate(grpd_time_event_bin = cur_group_id(),
-             # Assign a unique ID to each group
-             mean_p = mean(p, na.rm = TRUE)) %>%  # Average p over forecasters for a given
-      # event @ a point in time in a certain bin.
-      ungroup() # Remove grouping
-    
-    data_agg <- data_agg %>%
-      select(event, time, p, resolution, everything()) %>% # Reorder the columns
-      arrange(event, time) %>%
-      select(-p, -id, -industry, -grpd_time_event_bin) %>% # These are the forecaster-varying variables
-      rename(p = mean_p) %>%
-      distinct() %>% # Drop duplicates.
-      select(event, time, p, resolution, everything()) %>%
-      arrange(event, time, bin)
-    
-    data_agg <- data_agg %>%
-      group_by(time, event) %>%
-      mutate(grpd_time_event = cur_group_id())
-    
-    # file_path <-
-    #   paste0("Data/SPFmicrodataCleanedAggOwnCalc_", pred_var, ".csv")
-    # write.csv(data_agg, file_path, row.names = FALSE)
-    
-    # Store the dataframe in the list
-    cleaned_agg[[pred_var]] <- data_agg
-    
-    # *Data check* - should be that bin #'s are the same within an event across time.
-    # Count the number of bins in each time-event group.
-    grpd_data <- data_agg %>%
-      group_by(time, event) %>%
-      summarize(bin_count = n(), .groups = 'drop') %>%
-      ungroup()
-    
-    # Then check if the number of bins varies within each event
-    event_bin_variation <- grpd_data %>%
-      group_by(event) %>%
-      summarize(variance_in_bins = n_distinct(bin_count),
-                .groups = 'drop') %>%
-      ungroup()
-    
-    any_varied_bins <- any(event_bin_variation$variance_in_bins > 1)
-    if (any_varied_bins) {
-      print("Variance in bin counts found in the following events:")
-      print(event_bin_variation %>%
-              filter(variance_in_bins > 1))
-    }
+    cleaned[[pred_var]] <- df_spf
   }
-  # Return both lists as a named list
-  return(list("ind" = cleaned_ind, "agg" = cleaned_agg))
+  return(cleaned)
 }

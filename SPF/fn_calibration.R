@@ -1,6 +1,8 @@
 source("fn_reg_variable_names.R")
+
 # Calibration functions: (1) calibration regressions; (2) smooth (binary) true_bin for calibration plot;
 # (3) Traditional calibration bin scatter plot.
+
 
 fn_calibration_regs <-
   # Regression and hypothesis tests for calibration tables.
@@ -49,15 +51,17 @@ fn_calibration_regs <-
     # Extract coefficients
     coefficients <- coef(lm_model)
     
-    # Display the model summary with robust standard errors
-    fn_reg_variable_names(lm_model, data)
-    cat("Coefficients:\n")
-    print(coefficients)
-    cat("\nRobust Standard Errors:\n")
-    print(robust_se)
+    if (!use_dummies) {
+      # We see this in the calibration binned scatter plot.
+      # Display the model summary with robust standard errors
+      fn_reg_variable_names(lm_model, data)
+      cat("Coefficients:\n")
+      print(coefficients)
+      cat("\nRobust Standard Errors:\n")
+      print(robust_se)
+    }
     
     if (use_dummies) {
-      print("________________________________________________________________________________________________")
       # Return results needed for traditional calibration bin scatter plot.
       return(list(beta = coefficients,
                   se = robust_se))
@@ -98,7 +102,9 @@ fn_calibration_regs <-
         p_value_intercept,
         "\n"
       )
-      print("________________________________________________________________________________________________")
+      print(
+        "________________________________________________________________________________________________"
+      )
       
       # Return a list containing the model, Wald test p-values, and other relevant information.
       return(
@@ -119,7 +125,7 @@ fn_generate_true_bin_var <- function(df) {
   # What bin captures the realized outcome?
   df %>%
     mutate(true_bin = ifelse(realization > bin_l &
-                              realization <= bin_h, TRUE, FALSE))
+                               realization <= bin_h, TRUE, FALSE))
 }
 
 
@@ -133,7 +139,7 @@ fn_smooth <- function(df, p_var, smoothed_name, spar_value) {
         smooth.spline(get(p_var), true_bin, spar = spar_value)  # Fit the spline.
       predict(spline_fit, x = get(p_var))$y  # Predict using the original probs.
     }) %>%
-    select(!!sym(p_var),!!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed true_bin.
+    select(!!sym(p_var), !!sym(smoothed_name)) %>%  # Keep only p_var and the smoothed true_bin.
     distinct()  # Remove duplicate rows.
 }
 
@@ -170,7 +176,7 @@ fn_calibration_bin_scatter <-
     # Creating dummy variables using model.matrix()
     dummy_vars <-
       # The - 1 in the formula means that we're not including the intercept.
-      model.matrix( ~ as.factor(prob_cut_codes) - 1, data = df)
+      model.matrix(~ as.factor(prob_cut_codes) - 1, data = df)
     dummy_vars <- as.data.frame(dummy_vars)
     # Renaming the dummy variables.
     names(dummy_vars) <-
@@ -254,7 +260,7 @@ fn_calibration_bin_scatter <-
     
     # Generate file name based on the title string
     file_name <-
-      paste0("Graphs/calibration_bin_", substr(title, 1, 3), ".png")
+      paste0("Graphs/calibrationBin", toupper(substr(title, 1, 3)), ".png")
     
     # Save the plot
     ggsave(

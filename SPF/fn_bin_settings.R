@@ -4,20 +4,20 @@ fn_bin_limits_time_bounds <- function(elems) {
   # Define the binning limits + year bounds.
   end_point <- 1000
   limits <- list(
-    c(end_point, 10:-3, -end_point),
-    c(end_point, 12:-1, -end_point),
-    c(end_point, 16:3, -end_point),
-    c(end_point, seq(12, 4, by = -2), -end_point),
-    c(end_point, seq(10, 2, by = -2), -end_point),
-    c(end_point, 8:0, -end_point),
-    c(end_point, seq(4, 0, by = -0.5), -end_point),
-    c(end_point, seq(6, -2, by = -2), -end_point),
-    c(end_point, 6:-2, -end_point),
-    c(end_point, 6:-3, -end_point),
-    c(end_point, 16, 10, 7, 4, 2.5, 1.5, 0,-3,-6,-12, -end_point),
-    c(end_point, 11, seq(10, 7, by = -0.5), 6, -end_point),
-    c(end_point, 9, seq(8, 5, by = -0.5), 4, -end_point),
-    c(end_point, 15, 12, 10, 8:3, -end_point)
+    c(end_point, 10:-3,-end_point),
+    c(end_point, 12:-1,-end_point),
+    c(end_point, 16:3,-end_point),
+    c(end_point, seq(12, 4, by = -2),-end_point),
+    c(end_point, seq(10, 2, by = -2),-end_point),
+    c(end_point, 8:0,-end_point),
+    c(end_point, seq(4, 0, by = -0.5),-end_point),
+    c(end_point, seq(6,-2, by = -2),-end_point),
+    c(end_point, 6:-2,-end_point),
+    c(end_point, 6:-3,-end_point),
+    c(end_point, 16, 10, 7, 4, 2.5, 1.5, 0, -3, -6, -12,-end_point),
+    c(end_point, 11, seq(10, 7, by = -0.5), 6,-end_point),
+    c(end_point, 9, seq(8, 5, by = -0.5), 4,-end_point),
+    c(end_point, 15, 12, 10, 8:3,-end_point)
   )
   ops <-
     list(`<`,
