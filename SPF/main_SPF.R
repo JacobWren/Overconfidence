@@ -1,10 +1,10 @@
 # Get and set working directory
 current_dir <- getwd()
 if (!grepl("SPF$", current_dir)) {
-  setwd("SPF")
+  setwd("/Users/jakewren/overprecision/SPF")
 }
 # Load libraries.
-source("load_libs.R")
+source("../libraries.R")
 
 # Main files.
 source("fn_realized_outcomes_to_bins.R")

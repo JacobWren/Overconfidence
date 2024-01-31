@@ -1,0 +1,180 @@
+# True Avg. SD > Avg. estimates of SD.
+# Show this visually.
+
+
+fn_sd_plots <-
+  function(df,
+           base_plot,
+           common_params,
+           v_line_width,
+           text_size,
+           leg_title,
+           with_color,
+           model_color,
+           fill_color) {
+    # Output paths
+    output_paths <- paste0("Graphs/all", 1:4, ".png")
+    
+    # Filter to one row per pic.
+    df_filtered <- df %>%
+      filter(first == 1, !with_line) %>%
+      select(avg_sd, sd_true, sd_true_within, pic_num, far)
+    
+    # Average across far/close.
+    df_collapsed <- df_filtered %>%
+      group_by(pic_num) %>%
+      summarize(across(c(avg_sd, sd_true, sd_true_within, far), ~ mean(., na.rm = TRUE)))
+    
+    # Create additional plot variables
+    df_collapsed <- df_collapsed %>%
+      arrange(sd_true) %>%
+      mutate(num = row_number() * 1.5,
+             zero = 0,
+             truth_label = "True")
+    
+    plots <- list()
+    
+    # Plot 1: True SD
+    plots[[1]] <-
+      fn_line_sd_plot(df_collapsed,
+                      base_plot,
+                      v_line_width,
+                      text_size,
+                      leg_title,
+                      'black')
+    
+    # Plot 2: True SD overlayed w/ participant estimates
+    plots[[2]] <- base_plot +
+      geom_bar(data = df_collapsed,
+               aes(x = num, y = avg_sd, fill = "Estimate"),
+               stat = "identity") +
+      geom_segment(
+        data = df_collapsed,
+        aes(
+          x = num,
+          xend = num,
+          y = zero,
+          yend = sd_true,
+          linetype = "True"
+        ),
+        size = v_line_width
+      ) +
+      scale_fill_manual(values = fill_color) +
+      labs(fill = "", linetype = "") +
+      guides(linetype = guide_legend(keywidth = 3)) +
+      theme(
+        legend.text = element_text(size = text_size),
+        legend.title = element_text(size = 13),
+        legend.key.size = unit(leg_title, 'cm')
+      )
+    
+    # Get labels
+    true_within_label <- get_true_label(FALSE)
+    true_model_label <- get_true_label(TRUE)
+    
+    # Plot 3: True SD partitioned: within and model
+    plots[[3]] <- base_plot +
+      geom_segment(
+        data = df_collapsed,
+        aes(
+          x = num,
+          xend = num,
+          y = zero,
+          yend = sd_true_within,
+          color = get_true_label(FALSE)
+        ),
+        size = v_line_width
+      ) +
+      geom_segment(
+        data = df_collapsed,
+        aes(
+          x = num,
+          xend = num,
+          y = sd_true_within,
+          yend = sd_true,
+          color = get_true_label(TRUE)
+        ),
+        size = v_line_width
+      ) +
+      scale_color_manual(values = setNames(
+        c(with_color, model_color),
+        c(true_within_label, true_model_label)
+      )) +
+      labs(color = "") +
+      guides(color = guide_legend(
+        title = "",
+        keywidth = 3,
+        keyheight = 1
+      )) +
+      theme(
+        legend.position = "bottom",
+        legend.spacing.x = unit(0.7, "cm"),
+        legend.text = element_text(size = text_size, margin = margin(l = 2))  # Adjust space between legend key and label
+      )
+    
+    # Plot 4: True SD partitioned: within and model overlayed w/ participant estimates
+    plots[[4]] <- base_plot +
+      geom_bar(data = df_collapsed,
+               aes(x = num, y = avg_sd, fill = "Estimate"),
+               stat = "identity") +
+      geom_segment(
+        data = df_collapsed,
+        aes(
+          x = num,
+          xend = num,
+          y = zero,
+          yend = sd_true_within,
+          color = get_true_label(FALSE)
+        ),
+        size = v_line_width
+      ) +
+      geom_segment(
+        data = df_collapsed,
+        aes(
+          x = num,
+          xend = num,
+          y = sd_true_within,
+          yend = sd_true,
+          color = get_true_label(TRUE)
+        ),
+        size = v_line_width
+      ) +
+      scale_fill_manual(values = fill_color) +
+      scale_color_manual(values = setNames(
+        c(with_color, model_color),
+        c(true_within_label, true_model_label)
+      )) +
+      labs(fill = "", color = "") +
+      guides(
+        fill = guide_legend(
+          title = "",
+          keywidth = 1.7,
+          keyheight = 0.7,
+          keyspacing = unit(1, "lines")
+        ),
+        color = guide_legend(
+          title = "",
+          keywidth = 3,
+          keyheight = 0.8
+        )
+      ) +
+      theme(
+        legend.position = "bottom",
+        legend.spacing.x = unit(0.7, "cm"),
+        legend.text = element_text(size = text_size, margin = margin(l = 2))
+      )
+    
+    # Save the plots
+    for (i in seq_along(plots)) {
+      if (!is.null(plots[[i]])) {
+        ggsave(
+          file = output_paths[i],
+          plot = plots[[i]],
+          width = 10,
+          height = 6,
+          bg = "white"
+        )
+      }
+    }
+    
+  }

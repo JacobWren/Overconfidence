@@ -1,4 +1,4 @@
-source("fn_reg_variable_names.R")
+source("/Users/jakewren/overprecision/Helpers/fn_reg_variable_names.R")
 
 # Calibration functions: (1) calibration regressions; (2) smooth (binary) true_bin for calibration plot;
 # (3) Traditional calibration bin scatter plot.
@@ -121,7 +121,7 @@ fn_calibration_regs <-
 
 
 # Helper function.
-fn_generate_true_bin_var <- function(df) {
+fn_generate_true_bin <- function(df) {
   # What bin captures the realized outcome?
   df %>%
     mutate(true_bin = ifelse(realization > bin_l &

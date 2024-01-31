@@ -7,7 +7,10 @@
 overprecision.Rproj
 Experiment_Data/fn_dataframe.R
 SPF/Data
-SPF/Graphs2
-SPF/Results2
+SPF/Results_Ned
 SPF/Scratch
-SPF/density.gph
+Experiment/Analysis/*.do
+Experiment/Analysis/Data/*.do
+Experiment/Analysis/Data/*.dta
+Experiment/Analysis/Graphs2
+Experiment/Analysis/NEDGraphs

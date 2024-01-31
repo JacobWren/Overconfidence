@@ -1,4 +1,4 @@
-source("fn_calibration.R")
+source("../Calibration/fn_calibration.R")
 source("fn_regress_variance.R")
 
 
@@ -13,13 +13,13 @@ fn_analysis <-
     # Agg level:
     # df_agg => every bin (agg beliefs have been compressed over forecasters)
     
-    df_indvl <- fn_generate_true_bin_var(df_indvl)
+    df_indvl <- fn_generate_true_bin(df_indvl)
     
     # INDIVIDUAL
     idvl_calibration_regs <- fn_calibration_regs(df_indvl)
     
     # AGGREGATE
-    df_agg <- fn_generate_true_bin_var(df_agg)
+    df_agg <- fn_generate_true_bin(df_agg)
     
     names(df_agg)[names(df_agg) == "p_agg"] <- "p" # For table
     agg_calibration_regs <-
