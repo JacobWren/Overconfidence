@@ -1,28 +1,72 @@
-source("../Helpers/fn_reg_variable_names.R")
+# Regression and hypothesis tests for variance/error on disagreement for SPF and
+# partitioned variance regression for experiment.
+
+# Check if in "SPF"
+if (grepl("SPF$", getwd())) {
+  # If it ends with "SPF", source the file from one directory up
+  source("../Helpers/fn_reg_variable_names.R")
+} else {
+  # Otherwise, source the file from two directories up
+  source("../../Helpers/fn_reg_variable_names.R")
+}
 
 
-fn_variance_regs <-
-  # Regression and hypothesis tests for variance/error on disagreement.
+fn_regress_and_test <-
   function(data,
            normed = FALSE,
            cluster = TRUE,
            include_intercept = TRUE,
-           simple_reg = FALSE) {
-    # Choose the right formula based on 'normed' and 'include_intercept' flags.
-    if (normed) {
-      formula_str <-
-        ifelse(
-          include_intercept,
-          "errorNorm ~ disagreement_EV_minus_forecaster_i",
-          "errorNorm ~ disagreement_EV_minus_forecaster_i - 1"
-        )
+           simple_reg = FALSE,
+           case = "SPF",
+           wrong_mean = FALSE,
+           error_as_dv = TRUE,
+           disagreement = FALSE) {
+    # Choose the right formula based on the flags.
+    if (error_as_dv) {
+      # Error term as the dependent variable.
+      if (normed) {
+        formula_str <-
+          ifelse(
+            include_intercept,
+            "errorNorm ~ disagreement_EV_minus_forecaster_i",
+            "errorNorm ~ disagreement_EV_minus_forecaster_i - 1"
+          )
+      } else {
+        if (case == "SPF") {
+          formula_str <-
+            ifelse(
+              include_intercept,
+              "error ~ disagreement_EV_minus_forecaster_i",
+              "error ~ disagreement_EV_minus_forecaster_i - 1"
+            )
+        } else {
+          if (disagreement) {
+            formula_str <-
+              ifelse(
+                wrong_mean,
+                "error_in_mse ~ avg_var_of_mean_less_ith_id",
+                "error_in_var ~ avg_var_of_mean_less_ith_id"
+              )
+          } else {
+            formula_str <-
+              ifelse(
+                wrong_mean,
+                "error_in_mse ~ var_true_model + error_in_est",
+                "error_in_var ~ var_true_model"
+              )
+          }
+        }
+      }
     } else {
-      formula_str <-
-        ifelse(
-          include_intercept,
-          "error ~ disagreement_EV_minus_forecaster_i",
-          "error ~ disagreement_EV_minus_forecaster_i - 1"
-        )
+      # Variance on LHS.
+      if (case == "Experiment") {
+        formula_str <-
+          ifelse(
+            wrong_mean,
+            "var ~ var_true_within + var_true_model + var_true_added_from_wrong",
+            "var ~ var_true_within + var_true_model"
+          )
+      }
     }
     
     # Convert the string to a formula
@@ -78,6 +122,14 @@ fn_variance_regs <-
     cat("\nRobust Standard Errors:\n")
     print(robust_se)
     
+    if (case == "Experiment") {
+      return(list(
+        model = lm_model,
+        coefficients = coefficients,
+        robust_se = robust_se
+      ))
+    }
+    
     # Calculate Wald test statistic for disagreement_EV_minus_forecaster_i = 0
     disag_coef <- coefficients["disagreement_EV_minus_forecaster_i"]
     disag_se <- robust_se["disagreement_EV_minus_forecaster_i"]
@@ -91,11 +143,8 @@ fn_variance_regs <-
     
     # Print Wald test results
     cat(
-      "\nWald test for disagreement_EV_minus_forecaster_i = 0: Chi-squared statistic =",
-      wald_statistic_disag,
-      ", p-value =",
-      p_value,
-      "\n"
+      "\nWald test for disagreement_EV_minus_forecaster_i = 0: Chi-squared statistic =", wald_statistic_disag,
+      ", p-value =", p_value, "\n"
     )
     print(
       "________________________________________________________________________________________________"

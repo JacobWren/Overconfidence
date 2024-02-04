@@ -1,4 +1,6 @@
-# Merge truth and respondent predictions.
+# Merge answers/truth and respondent predictions.
+
+
 fn_clean <- function() {
   # Read the answers
   answers_df <- read.csv("Data/ans100423.csv")
@@ -56,12 +58,7 @@ fn_clean <- function() {
   # Keeping only specific columns.
   responses_df <- responses_df %>%
     rename(duration_secs = `Duration..in.seconds.`) %>%
-    select(allSliderData,
-           StartDate,
-           EndDate,
-           duration_secs,
-           Condition,
-           comp_score)
+    select(allSliderData, StartDate, EndDate, duration_secs, Condition, comp_score)
   
   # Clean slider data information.
   responses_df$allSliderData <-
@@ -76,8 +73,7 @@ fn_clean <- function() {
   # Create a temporary dataframe to store the slider data.
   slider_data_df <-
     data.frame(matrix(
-      ncol = length(n_pics) * n_info_per_pic,
-      nrow = nrow(responses_df)
+      ncol = length(n_pics) * n_info_per_pic, nrow = nrow(responses_df)
     ))
   
   # Name the new columns appropriately.
@@ -196,8 +192,7 @@ fn_clean <- function() {
       pth_pic_less_ith_id <-
         all_data_df %>% filter(id != i, pic == p)
       pth_pic_var <- var(pth_pic_less_ith_id$mean, na.rm = TRUE)
-      all_data_df$avg_var_of_mean_less_ith_id[all_data_df$id == i &
-                                                all_data_df$pic == p] <- pth_pic_var
+      all_data_df$avg_var_of_mean_less_ith_id[all_data_df$id == i & all_data_df$pic == p] <- pth_pic_var
     }
   }
   all_data_df$avg_sd_of_mean_less_ith_id <-

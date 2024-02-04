@@ -2,17 +2,7 @@
 
 
 fn_sd_within_only <-
-  function(df,
-           base_plot,
-           common_params,
-           v_line_width,
-           text_size,
-           leg_title,
-           with_color,
-           model_color,
-           fill_color) {
-    # Output paths
-    output_paths <- paste0("Graphs/lines", 1:2, ".png")
+  function(df, v_line_width, with_color, fill_color) {
     plots <- list()
     
     # Plot 1: SD: no model uncertainty
@@ -29,7 +19,7 @@ fn_sd_within_only <-
       arrange(sd_true) %>%
       mutate(num = row_number() * 1.5,
              zero = 0,
-             truth_label = get_true_label(FALSE)) %>%
+             truth_label = fn_get_true_label(FALSE)) %>%
       ungroup()
     
     x_min <- min(df_prepared$num)
@@ -39,28 +29,22 @@ fn_sd_within_only <-
     x_lim_min <- x_min - 1
     x_lim_max <- x_max + 1
     
+    # Common plot aesthetics
+    base_plot <- fn_base_sd_plot(df_prepared)
+    
     plots[[1]] <-
-      fn_line_sd_plot(df_prepared,
-                      base_plot,
-                      v_line_width,
-                      text_size,
-                      leg_title,
-                      with_color)
+      fn_line_sd_plot(base_plot, v_line_width, with_color)
     
     # Plot 2: Now overlay participant's (avg.) estimates.
     # Prediction: people will be generally correct on these problems.
     plots[[2]] <- base_plot +
-      geom_bar(data = df_prepared,
-               aes(x = num, y = avg_sd, fill = "Estimate"),
+      geom_bar(aes(y = avg_sd, fill = "Estimate"),
                stat = "identity") +
       geom_segment(
-        data = df_prepared,
         aes(
-          x = num,
-          xend = num,
           y = zero,
           yend = sd_true,
-          linetype = get_true_label(FALSE)
+          linetype = fn_get_true_label(FALSE)
         ),
         size = v_line_width,
         color = with_color
@@ -68,21 +52,7 @@ fn_sd_within_only <-
       scale_fill_manual(values = fill_color) +
       labs(fill = "", linetype = "") +
       guides(linetype = guide_legend(keywidth = 3)) +
-      theme(
-        legend.text = element_text(size = text_size),
-        legend.title = element_text(size = 13),
-        legend.key.size = unit(leg_title, 'cm')
-      )
+      theme(legend.title = element_text(size = 13), )
     # Save the plots
-    for (i in seq_along(plots)) {
-      if (!is.null(plots[[i]])) {
-        ggsave(
-          file = output_paths[i],
-          plot = plots[[i]],
-          width = 10,
-          height = 6,
-          bg = "white"
-        )
-      }
-    }
+    fn_save_plots(plots, "lines")
   }

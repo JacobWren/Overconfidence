@@ -1,5 +1,5 @@
 source("../Calibration/fn_calibration.R")
-source("fn_regress_variance.R")
+source("../Regressions/fn_regress_and_test.R")
 
 
 fn_analysis <-
@@ -183,10 +183,10 @@ fn_analysis <-
     )
     
     # Variance Regressions
-    # "Basic" Error On Disagreement Regressions.
-    var_regs_int <- fn_variance_regs(df_collapsed_bin_all_vars_indvl)
+    # Error On Disagreement Regressions.
+    var_regs_int <- fn_regress_and_test(df_collapsed_bin_all_vars_indvl)
     var_regs_no_int <-
-      fn_variance_regs(df_collapsed_bin_all_vars_indvl, include_intercept = FALSE)
+      fn_regress_and_test(df_collapsed_bin_all_vars_indvl, include_intercept = FALSE)
     
     names(df_collapsed_bin_all_vars_indvl)[names(df_collapsed_bin_all_vars_indvl) == "dataSet"] <-
       "forecast_var"
@@ -217,9 +217,9 @@ fn_analysis <-
       )
     # Regressions
     var_regs_int_avg <-
-      fn_variance_regs(df_collapsed, simple_reg = TRUE)
+      fn_regress_and_test(df_collapsed, simple_reg = TRUE)
     var_regs_no_int_avg <-
-      fn_variance_regs(df_collapsed,
+      fn_regress_and_test(df_collapsed,
                        simple_reg = TRUE,
                        include_intercept = FALSE)
     
@@ -235,11 +235,11 @@ fn_analysis <-
     # Duplicate the single row of means, otherwise won't run the "regession".
     df_fully_collapsed <- df_fully_collapsed[rep(1, 2),]
     var_regs_no_int_avg_only <-
-      fn_variance_regs(df_fully_collapsed,
+      fn_regress_and_test(df_fully_collapsed,
                        simple_reg = TRUE,
                        include_intercept = FALSE)
     
-    # Creating the disagreement regression table with stargazer.
+    # Creating the disagreement regression table.
     mods <-
       list(
         var_regs_int$model,

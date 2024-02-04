@@ -3,17 +3,9 @@
 
 fn_sd_close_far_plots <-
   function(df,
-           base_plot,
-           common_params,
            v_line_width,
-           text_size,
-           leg_title,
            with_color,
-           model_color,
-           fill_color) {
-    # Output paths
-    output_paths <- paste0("Graphs/firstSet", 1:4, ".png")
-    
+           model_color) {
     df_filtered <- df %>%
       filter(first == 1, with_line == 0, pic_num == 3) %>%
       mutate(num = pic_num + far / 2, zero = 0)
@@ -21,33 +13,26 @@ fn_sd_close_far_plots <-
     plots <- list()
     
     # Get labels
-    true_within_label <- get_true_label(FALSE)
-    true_model_label <- get_true_label(TRUE)
+    true_within_label <- fn_get_true_label(FALSE)
+    true_model_label <- fn_get_true_label(TRUE)
+    
+    # Common plot aesthetics
+    base_plot <- fn_base_sd_plot(df_filtered)
     
     # Plot 1: Close vs. Far for pic 3 only.
     plots[[1]] <- base_plot +
-      geom_segment(
-        data = df_filtered,
-        aes(
-          x = num,
-          xend = num,
-          y = zero,
-          yend = sd_true_within,
-          color = get_true_label(FALSE)
-        ),
-        linewidth = v_line_width
-      ) +
-      geom_segment(
-        data = df_filtered,
-        aes(
-          x = num,
-          xend = num,
-          y = sd_true_within,
-          yend = sd_true,
-          color = get_true_label(TRUE)
-        ),
-        linewidth = v_line_width
-      ) +
+      geom_segment(aes(
+        y = zero,
+        yend = sd_true_within,
+        color = fn_get_true_label(FALSE)
+      ),
+      linewidth = v_line_width) +
+      geom_segment(aes(
+        y = sd_true_within,
+        yend = sd_true,
+        color = fn_get_true_label(TRUE)
+      ),
+      linewidth = v_line_width) +
       scale_color_manual(values = setNames(
         c(with_color, model_color),
         c(true_within_label, true_model_label)
@@ -62,7 +47,7 @@ fn_sd_close_far_plots <-
       theme(
         legend.position = "bottom",
         legend.spacing.x = unit(0.7, "cm"),
-        legend.text = element_text(size = text_size, margin = margin(l = 2))
+        legend.text = element_text(margin = margin(l = 2))
       )
     
     # Plot 2: Again, close vs. far but now for a few pics.
@@ -72,29 +57,21 @@ fn_sd_close_far_plots <-
       mutate(num = pic_num * 3 - 2 + far,
              zero = 0)
     
+    base_plot <- fn_base_sd_plot(df_filtered)
+    
     plots[[2]] <- base_plot +
-      geom_segment(
-        data = df_filtered,
-        aes(
-          x = num,
-          xend = num,
-          y = zero,
-          yend = sd_true_within,
-          color = get_true_label(FALSE)
-        ),
-        linewidth = v_line_width
-      ) +
-      geom_segment(
-        data = df_filtered,
-        aes(
-          x = num,
-          xend = num,
-          y = sd_true_within,
-          yend = sd_true,
-          color = get_true_label(TRUE)
-        ),
-        linewidth = v_line_width
-      ) +
+      geom_segment(aes(
+        y = zero,
+        yend = sd_true_within,
+        color = fn_get_true_label(FALSE)
+      ),
+      linewidth = v_line_width) +
+      geom_segment(aes(
+        y = sd_true_within,
+        yend = sd_true,
+        color = fn_get_true_label(TRUE)
+      ),
+      linewidth = v_line_width) +
       scale_color_manual(values = setNames(
         c(with_color, model_color),
         c(true_within_label, true_model_label)
@@ -108,7 +85,7 @@ fn_sd_close_far_plots <-
       theme(
         legend.position = "bottom",
         legend.spacing.x = unit(0.7, "cm"),
-        legend.text = element_text(size = text_size, margin = margin(l = 2))
+        legend.text = element_text(margin = margin(l = 2))
       )
     
     df_filtered_avg <- df %>%
@@ -130,17 +107,19 @@ fn_sd_close_far_plots <-
     # Plot 3: Close vs Far now partitioned by model/within uncertainty; Plot 4: Aggregate across pics.
     for (i in seq_along(dfs)) {
       df <- dfs[[i]]
+      base_plot <- fn_base_sd_plot(df)
+      
       plots[[i + 2]] <- base_plot +
         geom_bar(
           data = df %>% filter(far == 0),
-          aes(x = num, y = avg_sd, fill = "Close"),
+          aes(y = avg_sd, fill = "Close"),
           stat = "identity",
           position = position_dodge(width = 0.50),
           width = 0.50
         ) +
         geom_bar(
           data = df %>% filter(far == 1),
-          aes(x = num, y = avg_sd, fill = "Far"),
+          aes(y = avg_sd, fill = "Far"),
           stat = "identity",
           position = position_dodge(width = 0.50),
           width = 0.50
@@ -148,44 +127,36 @@ fn_sd_close_far_plots <-
         geom_segment(
           data = df %>% filter(far == 0),
           aes(
-            x = num,
-            xend = num,
             y = zero,
             yend = sd_true_within,
-            color = get_true_label(FALSE)
+            color = fn_get_true_label(FALSE)
           ),
           linewidth = v_line_width
         ) +
         geom_segment(
           data = df %>% filter(far == 1),
           aes(
-            x = num,
-            xend = num,
             y = zero,
             yend = sd_true_within,
-            color = get_true_label(FALSE)
+            color = fn_get_true_label(FALSE)
           ),
           linewidth = v_line_width
         ) +
         geom_segment(
           data = df %>% filter(far == 0),
           aes(
-            x = num,
-            xend = num,
             y = sd_true_within,
             yend = sd_true,
-            color = get_true_label(TRUE)
+            color = fn_get_true_label(TRUE)
           ),
           linewidth = v_line_width
         ) +
         geom_segment(
           data = df %>% filter(far == 1),
           aes(
-            x = num,
-            xend = num,
             y = sd_true_within,
             yend = sd_true,
-            color = get_true_label(TRUE)
+            color = fn_get_true_label(TRUE)
           ),
           linewidth = v_line_width
         ) +
@@ -211,7 +182,7 @@ fn_sd_close_far_plots <-
         theme(
           legend.position = "bottom",
           legend.spacing.x = unit(0.7, "cm"),
-          legend.text = element_text(size = text_size, margin = margin(l = 2))
+          legend.text = element_text(margin = margin(l = 2))
         )
       if (i == 2) {
         plots[[i + 2]] <-
@@ -220,16 +191,5 @@ fn_sd_close_far_plots <-
     }
     
     # Save the plots
-    for (i in seq_along(plots)) {
-      if (!is.null(plots[[i]])) {
-        ggsave(
-          file = output_paths[i],
-          plot = plots[[i]],
-          width = 10,
-          height = 6,
-          bg = "white"
-        )
-      }
-    }
-    
+    fn_save_plots(plots, "firstSet")
   }

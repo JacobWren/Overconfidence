@@ -14,3 +14,6 @@ Experiment/Analysis/Data/*.do
 Experiment/Analysis/Data/*.dta
 Experiment/Analysis/Graphs2
 Experiment/Analysis/NEDGraphs
+Experiment/Analysis/Graphs/allMSE3.png
+Experiment/Analysis/fn_mse_plots.R
+libraries.R
