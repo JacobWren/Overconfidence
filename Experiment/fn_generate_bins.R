@@ -15,14 +15,13 @@ fn_generate_bins <- function(df) {
   expanded_df <- df %>%
     crossing(bins_df) %>%
     mutate(
-      true_bin = mean_true >= bin_start & mean_true < bin_end,
       # Bin probability: for truth and for perceived or estimated.
       p_true = pnorm(bin_end, mean_true, sd_true) - pnorm(bin_start, mean_true, sd_true),
-      p_perceive = pnorm(bin_end, mean, sd) - pnorm(bin_start, mean, sd)
+      p = pnorm(bin_end, mean, sd) - pnorm(bin_start, mean, sd)
     ) %>%
     group_by(id, pic) %>%
     mutate(bin = row_number()) %>%
-    ungroup()
+    ungroup() 
   
   return(expanded_df)
 }

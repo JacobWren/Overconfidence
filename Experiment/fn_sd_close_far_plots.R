@@ -96,7 +96,8 @@ fn_sd_close_far_plots <-
       summarize(
         avg_sd = mean(avg_sd),
         sd_true = mean(sd_true),
-        sd_true_within = mean(sd_true_within)
+        sd_true_within = mean(sd_true_within),
+        .groups = "drop"
       ) %>%
       mutate(num = pic_num + far * 1.5,
              zero = 0) %>%

@@ -14,7 +14,8 @@ fn_sd_within_only <-
         avg_sd = mean(avg_sd),
         sd_true = mean(sd_true),
         sd_true_within = mean(sd_true_within),
-        far = mean(far)
+        far = mean(far),
+        .groups = "drop"
       ) %>%
       arrange(sd_true) %>%
       mutate(num = row_number() * 1.5,

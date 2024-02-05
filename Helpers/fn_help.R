@@ -1,4 +1,6 @@
-fn_reg_variable_names <- function(model, dataset) {
+# General helpers.
+
+fn_help <- function(model, dataset) {
   # A function to extract and print variable names from the regression model.
   
   # Extracting model formula
@@ -20,4 +22,19 @@ fn_reg_variable_names <- function(model, dataset) {
   cat("Independent Variables:", independent_vars, "\n")
   # Print the number of observations
   cat("Number of Observations:", nrow(dataset), "\n")
+}
+
+
+# Horizontally glue two plots together.
+fn_combine_plots <- function(plot1, plot2, ncol = 2, align = 'v', axis = 'tb', rel_widths = c(2, 2)) {
+  combined_plot <- plot_grid(
+    plot1,
+    plot2,
+    ncol = ncol,
+    align = align,
+    axis = axis,
+    rel_widths = rel_widths
+  )
+  
+  return(combined_plot)
 }

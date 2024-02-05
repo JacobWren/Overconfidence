@@ -12,7 +12,7 @@ fn_sd_plots <-
     # Average across far/close.
     df_collapsed <- df_filtered %>%
       group_by(pic_num) %>%
-      summarize(across(c(avg_sd, sd_true, sd_true_within, far), ~ mean(., na.rm = TRUE)))
+      summarize(across(c(avg_sd, sd_true, sd_true_within, far), ~ mean(., na.rm = TRUE)), .groups = "drop")
     
     # Create additional plot variables
     df_collapsed <- df_collapsed %>%

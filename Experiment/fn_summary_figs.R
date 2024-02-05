@@ -38,5 +38,4 @@ fn_summary_figs <- function(df) {
       "true distribution"
     )
   )
-  
 }

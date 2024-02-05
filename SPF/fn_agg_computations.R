@@ -1,4 +1,5 @@
-source("../Helpers/fn_reg_variable_names.R")
+source("../Helpers/fn_help.R")
+source("../Helpers/fn_aggregate.R")
 source("fn_computations.R")
 
 
@@ -14,17 +15,19 @@ fn_agg_computations <-
       df_spf_ind_var <-
         spf_micro_ind[[pred_var]] # One forecasting variable at a time.
       
-      df_spf_agg_var <- df_spf_ind_var %>%
-        group_by(event, time, bin) %>%
-        mutate(grpd_event_time_bin = cur_group_id()) %>%
-        # Get average probabilities over event/time/bin -> collapse out forecasters.
-        mutate(p_agg = mean(p, na.rm = TRUE)) %>%
-        ungroup() %>%
-        # Drop individual-level stuff.
-        select(-id,-industry,-p) %>%
-        distinct() %>% # Remove duplicate rows.
-        arrange(event, time, bin) %>%
-        mutate(data_set = pred_var)
+      df_spf_agg_var <- fn_aggregate(df_spf_ind_var, pred_var = pred_var, to_drop = c("industry"))
+      
+      # df_spf_agg_var <- df_spf_ind_var %>%
+      #   group_by(event, time, bin) %>%
+      #   mutate(grpd_event_time_bin = cur_group_id()) %>%
+      #   # Get average probabilities over event/time/bin -> collapse out forecasters.
+      #   mutate(p_agg = mean(p, na.rm = TRUE)) %>%
+      #   ungroup() %>%
+      #   # Drop individual-level stuff.
+      #   select(-id,-industry,-p) %>%
+      #   distinct() %>% # Remove duplicate rows.
+      #   arrange(event, time, bin) %>%
+      #   mutate(data_set = pred_var)
       
       spf_ind_agg[[pred_var]] <- df_spf_agg_var
       
@@ -38,7 +41,7 @@ fn_agg_computations <-
         all(abs(df_spf_agg_var$should_be_1 - 1) < tolerance)
       if (!prob_check) {
         print(pred_var)
-        print("Probabilities don't add to 1")
+        stop("Probabilities don't add to 1 in the SPF aggregate.")
       }
       # stopifnot(all(abs(df_spf_agg_var$should_be_1 - 1) < tolerance))
       
@@ -46,7 +49,7 @@ fn_agg_computations <-
         group_by(time, event) %>% # For an "average" forecaster @ a point in time forecasting an event.
         mutate(grpd_time_event = cur_group_id()) %>%
         ungroup()
-      
+
       # For a given event-time, what is the expected value and the variance of the aggregate?
       df_spf_agg_var <-
         calculate_EV_and_var(df_spf_agg_var, "grpd_time_event", is_agg = TRUE)
@@ -100,10 +103,10 @@ fn_agg_computations <-
         "\n"
       )
       options(digits = 7)
-      fn_reg_variable_names(model1, df_spf_agg_var)
+      fn_help(model1, df_spf_agg_var)
       print(model1)
       cat("\n")
-      fn_reg_variable_names(model2, df_spf_agg_var)
+      fn_help(model2, df_spf_agg_var)
       print(model2)
     }
     

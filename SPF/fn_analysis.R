@@ -1,5 +1,6 @@
 source("../Calibration/fn_calibration.R")
-source("../Regressions/fn_regress_and_test.R")
+source("../Regressions/fn_regress.R")
+source("../Helpers/fn_help.R")
 
 
 fn_analysis <-
@@ -13,13 +14,13 @@ fn_analysis <-
     # Agg level:
     # df_agg => every bin (agg beliefs have been compressed over forecasters)
     
-    df_indvl <- fn_generate_true_bin(df_indvl)
+    df_indvl <- fn_generate_p_empirical(df_indvl)
     
     # INDIVIDUAL
     idvl_calibration_regs <- fn_calibration_regs(df_indvl)
     
     # AGGREGATE
-    df_agg <- fn_generate_true_bin(df_agg)
+    df_agg <- fn_generate_p_empirical(df_agg)
     
     names(df_agg)[names(df_agg) == "p_agg"] <- "p" # For table
     agg_calibration_regs <-
@@ -70,10 +71,10 @@ fn_analysis <-
     smoothing_param <-
       1.475 # Used for smoothing scatterplot via a spline.
     data_idvl_smoothed <-
-      fn_smooth(df_indvl, "p", "true_bin_smoothed", smoothing_param)
+      fn_smooth(df_indvl, "p", "p_empirical_smoothed", smoothing_param)
     # Aggregate level
     data_agg_smoothed <-
-      fn_smooth(df_agg, "p_agg", "true_bin_smoothed_agg", smoothing_param)
+      fn_smooth(df_agg, "p_agg", "p_empirical_smoothed_agg", smoothing_param)
     
     # Append the dfs.
     combined_smoothed <-
@@ -89,13 +90,13 @@ fn_analysis <-
       ) +
       geom_line(
         data = combined_smoothed,
-        aes(x = p, y = true_bin_smoothed, color = "Individual"),
+        aes(x = p, y = p_empirical_smoothed, color = "Individual"),
         size = 0.85,
         alpha = .85
       ) +
       geom_line(
         data = combined_smoothed,
-        aes(x = p_agg, y = true_bin_smoothed_agg, color = "Average"),
+        aes(x = p_agg, y = p_empirical_smoothed_agg, color = "Average"),
         size = 0.85,
         alpha = .90
       ) +
@@ -164,15 +165,8 @@ fn_analysis <-
       fn_calibration_bin_scatter(df_agg, "p_agg", "Aggregate", cluster_by_event_only =
                                    TRUE)
     # Combine the plots
-    combined_plot <-
-      plot_grid(
-        idvl_bin_scatter,
-        agg_bin_scatter,
-        ncol = 2,
-        align = 'v',
-        axis = 'tb',
-        rel_widths = c(2, 2)
-      )
+    combined_plot <- fn_combine_plots(idvl_bin_scatter, agg_bin_scatter)
+    
     # Export the combined plot
     ggsave(
       "Graphs/calibrationBin.png",
@@ -184,9 +178,9 @@ fn_analysis <-
     
     # Variance Regressions
     # Error On Disagreement Regressions.
-    var_regs_int <- fn_regress_and_test(df_collapsed_bin_all_vars_indvl)
+    var_regs_int <- fn_regress(df_collapsed_bin_all_vars_indvl)
     var_regs_no_int <-
-      fn_regress_and_test(df_collapsed_bin_all_vars_indvl, include_intercept = FALSE)
+      fn_regress(df_collapsed_bin_all_vars_indvl, include_intercept = FALSE)
     
     names(df_collapsed_bin_all_vars_indvl)[names(df_collapsed_bin_all_vars_indvl) == "dataSet"] <-
       "forecast_var"
@@ -217,9 +211,9 @@ fn_analysis <-
       )
     # Regressions
     var_regs_int_avg <-
-      fn_regress_and_test(df_collapsed, simple_reg = TRUE)
+      fn_regress(df_collapsed, simple_reg = TRUE)
     var_regs_no_int_avg <-
-      fn_regress_and_test(df_collapsed,
+      fn_regress(df_collapsed,
                        simple_reg = TRUE,
                        include_intercept = FALSE)
     
@@ -235,7 +229,7 @@ fn_analysis <-
     # Duplicate the single row of means, otherwise won't run the "regession".
     df_fully_collapsed <- df_fully_collapsed[rep(1, 2),]
     var_regs_no_int_avg_only <-
-      fn_regress_and_test(df_fully_collapsed,
+      fn_regress(df_fully_collapsed,
                        simple_reg = TRUE,
                        include_intercept = FALSE)
     

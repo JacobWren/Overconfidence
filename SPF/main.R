@@ -48,6 +48,7 @@ vars_to_forecast <- vars_to_forecast[-length(vars_to_forecast)]
 ind_data <-
   fn_ind_computations(ind_spf_micro_bin_nums, vars_to_forecast, smooth = FALSE)
 
+# grpd_event_time_bin -> aggregate_forecaster
 # Compute variance error, disagreement, etc. for the "average" forecaster.
 agg_data <-
   fn_agg_computations(ind_spf_micro_bin_nums,

@@ -33,7 +33,25 @@ fn_clean <- function() {
   
   responses_df <- responses_df %>%
     slice(-2) %>% # Skip first two rows.
-    filter(loopCounter == "13") # Missing/incomplete responses.
+    filter(loopCounter == "13" & Finished == 1) # Missing/incomplete responses.
+    
+  # Step 1: Extract pixel width as a character string
+  responses_df <- responses_df %>%
+    mutate(width_str = map_chr(Q34_Resolution, function(x) {
+      if (x == "" | !grepl("x", x)) {
+        NA_character_  # Return NA for empty strings or strings without "x"
+      } else {
+        strsplit(x, "x")[[1]][1]  # Extract the part before "x"
+      }
+    }))
+  
+  # Step 2: Convert the extracted width to numeric and filter.
+  responses_df <- responses_df %>%
+    mutate(pixel_width = as.numeric(width_str)) %>%
+    select(-width_str) %>%
+    # Excluding those who used a mobile device (identified by horizontal pixel count on screen resolution)
+    filter(pixel_width > 1000) %>%
+    select(-pixel_width)
   
   # Initialize comp_score column.
   responses_df$comp_score <- 0
@@ -58,7 +76,12 @@ fn_clean <- function() {
   # Keeping only specific columns.
   responses_df <- responses_df %>%
     rename(duration_secs = `Duration..in.seconds.`) %>%
-    select(allSliderData, StartDate, EndDate, duration_secs, Condition, comp_score)
+    select(allSliderData,
+           StartDate,
+           EndDate,
+           duration_secs,
+           Condition,
+           comp_score)
   
   # Clean slider data information.
   responses_df$allSliderData <-
@@ -73,7 +96,8 @@ fn_clean <- function() {
   # Create a temporary dataframe to store the slider data.
   slider_data_df <-
     data.frame(matrix(
-      ncol = length(n_pics) * n_info_per_pic, nrow = nrow(responses_df)
+      ncol = length(n_pics) * n_info_per_pic,
+      nrow = nrow(responses_df)
     ))
   
   # Name the new columns appropriately.
@@ -170,15 +194,6 @@ fn_clean <- function() {
            avg_var = mean(var, na.rm = TRUE)) %>%
     ungroup()
   
-  all_data_df <- all_data_df %>%
-    group_by(pic) %>%
-    mutate(
-      avg_mean = mean(mean, na.rm = TRUE),
-      avg_sd_of_mean = sd(mean, na.rm = TRUE)
-    ) %>%
-    ungroup() %>%
-    mutate(avg_var_of_mean = avg_sd_of_mean ^ 2)
-  
   # Are people generally right in terms of mean?
   all_data_df$avg_var_of_mean_less_ith_id <- NA # Initialize
   
@@ -192,11 +207,22 @@ fn_clean <- function() {
       pth_pic_less_ith_id <-
         all_data_df %>% filter(id != i, pic == p)
       pth_pic_var <- var(pth_pic_less_ith_id$mean, na.rm = TRUE)
-      all_data_df$avg_var_of_mean_less_ith_id[all_data_df$id == i & all_data_df$pic == p] <- pth_pic_var
+      all_data_df$avg_var_of_mean_less_ith_id[all_data_df$id == i &
+                                                all_data_df$pic == p] <- pth_pic_var
     }
   }
   all_data_df$avg_sd_of_mean_less_ith_id <-
     sqrt(all_data_df$avg_var_of_mean_less_ith_id)
+  
+  all_data_df <- all_data_df %>%
+    group_by(pic) %>%
+    mutate(
+      avg_mean = mean(mean, na.rm = TRUE),
+      avg_sd_of_mean = sd(mean, na.rm = TRUE),
+      agg_disagreement = mean(avg_var_of_mean_less_ith_id, na.rm = TRUE)
+    ) %>%
+    ungroup() %>%
+    mutate(avg_var_of_mean = avg_sd_of_mean ^ 2)
   
   # So I can run regressions pic by pic (when working with averages):
   # Binary variable indicating the first observation in each pic.
