@@ -1,0 +1,168 @@
+source("../Calibration/fn_calibration.R")
+source("../Regressions/fn_regress.R")
+source("../Helpers/fn_help.R")
+
+# Calibratio regressions and plots.
+
+
+fn_calibration_analysis <-
+  function(df_indvl, df_agg) {
+    # Individual level:
+    # df_indvl => every forecaster and every bin
+    # Agg level:
+    # df_agg => every bin (agg beliefs have been compressed over forecasters)
+    
+    df_indvl <- fn_generate_p_empirical(df_indvl)
+    
+    # INDIVIDUAL
+    idvl_calibration_regs <-
+      fn_regress(df_indvl, calibration = TRUE)
+    
+    # AGGREGATE
+    df_agg <- fn_generate_p_empirical(df_agg)
+    
+    names(df_agg)[names(df_agg) == "p_agg"] <- "p" # For table
+    agg_calibration_regs <-
+      fn_regress(df_agg, calibration = TRUE, cluster = "single")
+    
+    # Create the Calibration Table
+    calibration_table <-
+      stargazer(
+        idvl_calibration_regs$model,
+        agg_calibration_regs$model,
+        type = "latex",
+        header = FALSE,
+        se = list(
+          idvl_calibration_regs$robust_se,
+          agg_calibration_regs$robust_se
+        ),
+        add.lines = list(
+          c(
+            "P(Beta=1)",
+            sprintf("%.4f", idvl_calibration_regs$p_value_p),
+            sprintf("%.4f", agg_calibration_regs$p_value_p)
+          ),
+          c(
+            "P(Cons=0)",
+            sprintf("%.4f", idvl_calibration_regs$p_value_intercept),
+            sprintf("%.4f", agg_calibration_regs$p_value_intercept)
+          )
+        ),
+        covariate.labels = c("Prob", "Constant"),
+        omit.stat = c("f", "ser", "adj.rsq"),
+        # Drop
+        column.labels = c("Individual", "Average"),
+        model.numbers = FALSE,
+        star.cutoffs = NA,
+        # Disable significance stars
+        dep.var.labels.include = FALSE,
+        # Remove "Dependent variable" label
+        dep.var.caption = ""  # Remove the dependent variable caption
+      )
+    
+    # Write the table to a .tex file
+    cat(calibration_table, file = "Results/calibration.tex")
+    
+    # Calibration: Plots
+    names(df_agg)[names(df_agg) == "p"] <- "p_agg" # Command z.
+    # Smoothing operation on the "true bin" variable against the perceived probability.
+    # Individual level
+    data_idvl_smoothed <-
+      fn_smooth(df_indvl, "p", "p_empirical_smoothed")
+    # Aggregate level
+    data_agg_smoothed <-
+      fn_smooth(df_agg, "p_agg", "p_empirical_smoothed_agg")
+    
+    # Append the dfs.
+    combined_smoothed <-
+      bind_rows(data_idvl_smoothed, data_agg_smoothed)
+    
+    # Calibration smoothed plot
+    calibration_smoothed_fig <- ggplot(combined_smoothed) +
+      scale_x_continuous("Belief",
+                         labels = percent_format(),
+                         breaks = seq(0, 1, by = 0.25)) +
+      scale_y_continuous("Empirical Probability",
+                         labels = percent_format(),
+                         breaks = seq(0, 1, by = 0.25)) +
+      theme_minimal() +
+      theme(
+        legend.position = c(0.18, 0.77),
+        legend.direction = "vertical",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 9),
+        legend.key = element_blank(),
+        legend.key.size = unit(.01, "lines"),
+        legend.spacing = unit(0.001, "cm"),
+        legend.margin = margin(.001, 3, .001, .001),
+        legend.box.margin = margin(.01, .3, .01, .3),
+        legend.spacing.y = unit(.01, "lines"),
+        legend.background = element_rect(fill = "white", color = "black"),
+        axis.title = element_text(size = 13),
+        axis.text = element_text(size = 12),
+        panel.border = element_blank(),
+        plot.background = element_rect(fill = "white", color = NA),
+        plot.margin = unit(c(1, 1, 1, 1), "lines")
+      ) +
+      scale_color_manual(
+        values = c(
+          "Bayesian" = "darkgrey",
+          "Individual" = "navy",
+          "Average" = "red"
+        ),
+        name = "Legend"
+      ) +
+      scale_linetype_manual(values = c(
+        "Bayesian" = "dashed",
+        "Individual" = "solid",
+        "Average" = "solid"
+      ))
+    
+    calibration_smoothed_fig <- calibration_smoothed_fig +
+      geom_line(aes(x = p, y = p, color = "Bayesian"),
+                size = 0.90,
+                linetype = "dashed") +
+      geom_line(
+        aes(x = p, y = p_empirical_smoothed, color = "Individual"),
+        size = 0.85,
+        alpha = .85
+      ) +
+      geom_line(
+        aes(x = p_agg, y = p_empirical_smoothed_agg, color = "Average"),
+        size = 0.85,
+        alpha = .90
+      ) +
+      guides(color = guide_legend(override.aes = list(
+        size = 11,
+        linetype = c("solid", "dashed", "solid")
+      )))
+    
+    # Save the plot to a PDF file
+    ggsave(
+      "Graphs/calibration.png",
+      plot = calibration_smoothed_fig,
+      device = "png",
+      width = 6.75,
+      height = 4.75
+    )
+
+    # Traditional calibration bin scatter plots.
+    # Individual level
+    idvl_bin_scatter <-
+      fn_calibration_bin_scatter(df_indvl, "p", "Individual")
+    # Aggregate level
+    agg_bin_scatter <-
+      fn_calibration_bin_scatter(df_agg, "p_agg", "Aggregate", cluster = "single")
+    # Combine the plots
+    combined_plot <-
+      fn_combine_plots(idvl_bin_scatter, agg_bin_scatter)
+    
+    # Export the combined plot
+    ggsave(
+      "Graphs/calibrationBin.png",
+      combined_plot,
+      device = "png",
+      width = 7,
+      height = 3
+    )
+  }

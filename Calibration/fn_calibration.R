@@ -13,7 +13,7 @@ fn_generate_p_empirical <- function(df) {
 }
 
 # Smooth (binary) empirical probability for calibration plot (for SPF).
-fn_smooth <- function(df, p_var, smoothed_name, spar_value) {
+fn_smooth <- function(df, p_var, smoothed_name, spar_value = 1.475) {
   # Fit a curve through the data points represented by (prob_var, p_empirical). The smooth.spline function in R creates a
   # spline that passes through or near these points in a way that minimizes the overall curvature of the line,
   # resulting in a smooth representation of the data.

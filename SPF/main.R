@@ -13,7 +13,8 @@ source("fn_add_outcomes.R")
 source("fn_bin_end_points.R")
 source("fn_ind_computations.R")
 source("fn_agg_computations.R")
-source("fn_analysis.R")
+source("fn_calibration_analysis.R")
+source("fn_regression_analysis.R")
 
 realized_outcomes_file_path <-
   "RawData/RealizedOutcomes.xlsx" # 1 sheet per variable.
@@ -55,13 +56,18 @@ agg_data <-
                       vars_to_forecast,
                       ind_data$spf_ind_collapsed_bin_agg)
 
-# Analysis
-fn_analysis(
+# Calibration analysis
+fn_calibration_analysis(
+  ind_data$spf_micro_ind_all_vars,
+  agg_data$all_vars_agg_with_bins
+)
+
+# Regression analysis
+fn_regression_analysis(
   ind_data$spf_micro_ind_all_vars,
   agg_data$all_vars_agg_with_bins,
   ind_data$spf_ind_collapsed_bin_all_vars
 )
-
 
 # ind_data$spf_ind_collapsed_bin_all_vars_agg: => Not really used => all averages compressed over
 # event-time-forecasting variable

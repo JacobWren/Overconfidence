@@ -15,19 +15,8 @@ fn_agg_computations <-
       df_spf_ind_var <-
         spf_micro_ind[[pred_var]] # One forecasting variable at a time.
       
+      # Get average probabilities over event/time/bin -> collapse out forecasters.
       df_spf_agg_var <- fn_aggregate(df_spf_ind_var, pred_var = pred_var, to_drop = c("industry"))
-      
-      # df_spf_agg_var <- df_spf_ind_var %>%
-      #   group_by(event, time, bin) %>%
-      #   mutate(grpd_event_time_bin = cur_group_id()) %>%
-      #   # Get average probabilities over event/time/bin -> collapse out forecasters.
-      #   mutate(p_agg = mean(p, na.rm = TRUE)) %>%
-      #   ungroup() %>%
-      #   # Drop individual-level stuff.
-      #   select(-id,-industry,-p) %>%
-      #   distinct() %>% # Remove duplicate rows.
-      #   arrange(event, time, bin) %>%
-      #   mutate(data_set = pred_var)
       
       spf_ind_agg[[pred_var]] <- df_spf_agg_var
       
@@ -43,7 +32,6 @@ fn_agg_computations <-
         print(pred_var)
         stop("Probabilities don't add to 1 in the SPF aggregate.")
       }
-      # stopifnot(all(abs(df_spf_agg_var$should_be_1 - 1) < tolerance))
       
       df_spf_agg_var <- df_spf_agg_var %>%
         group_by(time, event) %>% # For an "average" forecaster @ a point in time forecasting an event.

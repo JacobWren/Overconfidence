@@ -20,11 +20,15 @@ fn_regress <-
     if (calibration) {
       if (case == "SPF") {
         dep_var <- "p_empirical"
+        ind_var <- "p"
+        # if (cluster == "single") { # => in the aggregate
+        #   dep_var <- "p_agg_empirical"
+        #   ind_var <- "p_agg"
+        # }
       } else {
         names(data)[names(data) == "pic"] <- "event"
         # Initialize variables
         dep_var <- "p_true"  
-        ind_var <- "p"      
         if (cluster == "single") { # => in the aggregate
           dep_var <- "p_agg_true"
           ind_var <- "p_agg"
