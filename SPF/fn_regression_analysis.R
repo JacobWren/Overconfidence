@@ -19,7 +19,7 @@ fn_regression_analysis <-
     var_regs_no_int <-
       fn_regress(df_collapsed_bin_all_vars_indvl, include_intercept = FALSE)
     
-    names(df_collapsed_bin_all_vars_indvl)[names(df_collapsed_bin_all_vars_indvl) == "dataSet"] <-
+    names(df_collapsed_bin_all_vars_indvl)[names(df_collapsed_bin_all_vars_indvl) == "data_set"] <-
       "forecast_var"
     # Combining groups ==> that is, taking averages over forecasted variables/timeToResolution.
     df_collapsed_bin_all_vars_indvl <-

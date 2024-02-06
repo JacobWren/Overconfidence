@@ -182,7 +182,7 @@ fn_ind_computations <- function(spf_micro_ind, pred_vars, smooth) {
     df_spf_micro <- df_spf_micro %>%
       mutate(# Time till event "resolves".
         distance_from_resolution = event + 1 - time,
-        dataSet = pred_var)
+        data_set = pred_var)
     
     # One row per forecaster event-time (they're repeated across bins).
     df_spf_micro <- df_spf_micro %>%
@@ -204,7 +204,7 @@ fn_ind_computations <- function(spf_micro_ind, pred_vars, smooth) {
         time,
         event,
         grpd_time_event,
-        dataSet,
+        data_set,
         distance_from_resolution,
         avg_forecaster_EV,
         realization,
@@ -225,7 +225,7 @@ fn_ind_computations <- function(spf_micro_ind, pred_vars, smooth) {
         EV = mean(avg_forecaster_EV, na.rm = TRUE),
         disagreement_EV_minus_forecaster_i = mean(disagreement_EV_minus_forecaster_i, na.rm = TRUE),
         realization = mean(realization, na.rm = TRUE),
-        dataSet = first(dataSet)
+        data_set = first(data_set)
       ) %>%
       ungroup()
     
@@ -251,7 +251,7 @@ fn_ind_computations <- function(spf_micro_ind, pred_vars, smooth) {
     spf_micro_ind_filt <-
       spf_micro_ind[[pred_var]][!spf_micro_ind[[pred_var]]$resolution == 2 &
                                   !is.na(spf_micro_ind[[pred_var]]$realization),]
-    spf_micro_ind_filt$dataSet <- pred_var
+    spf_micro_ind_filt$data_set <- pred_var
     spf_micro_ind_all_vars <-
       rbind(spf_micro_ind_all_vars, spf_micro_ind_filt)
   }

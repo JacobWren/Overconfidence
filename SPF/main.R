@@ -12,6 +12,7 @@ source("fn_clean.R")
 source("fn_add_outcomes.R")
 source("fn_bin_end_points.R")
 source("fn_ind_computations.R")
+source("fn_descriptives.R")
 source("fn_agg_computations.R")
 source("fn_calibration_analysis.R")
 source("fn_regression_analysis.R")
@@ -49,6 +50,9 @@ vars_to_forecast <- vars_to_forecast[-length(vars_to_forecast)]
 ind_data <-
   fn_ind_computations(ind_spf_micro_bin_nums, vars_to_forecast, smooth = FALSE)
 
+# Brief descriptives.
+fn_descriptives(ind_data$spf_micro_ind_all_vars)
+
 # grpd_event_time_bin -> aggregate_forecaster
 # Compute variance error, disagreement, etc. for the "average" forecaster.
 agg_data <-
@@ -57,10 +61,8 @@ agg_data <-
                       ind_data$spf_ind_collapsed_bin_agg)
 
 # Calibration analysis
-fn_calibration_analysis(
-  ind_data$spf_micro_ind_all_vars,
-  agg_data$all_vars_agg_with_bins
-)
+fn_calibration_analysis(ind_data$spf_micro_ind_all_vars,
+                        agg_data$all_vars_agg_with_bins)
 
 # Regression analysis
 fn_regression_analysis(

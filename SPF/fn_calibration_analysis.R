@@ -1,8 +1,9 @@
 source("../Calibration/fn_calibration.R")
+source("../Calibration/fn_extreme_bins.R")
 source("../Regressions/fn_regress.R")
 source("../Helpers/fn_help.R")
 
-# Calibratio regressions and plots.
+# Calibration regressions and plots.
 
 
 fn_calibration_analysis <-
@@ -13,15 +14,24 @@ fn_calibration_analysis <-
     # df_agg => every bin (agg beliefs have been compressed over forecasters)
     
     df_indvl <- fn_generate_p_empirical(df_indvl)
-    
-    # INDIVIDUAL
-    idvl_calibration_regs <-
-      fn_regress(df_indvl, calibration = TRUE)
-    
-    # AGGREGATE
     df_agg <- fn_generate_p_empirical(df_agg)
     
+    # Probability in highest bin averages 52.2% but bin actually occurs 38.1% of the time (p<0.001).
+    # Similarly, ``border'' bins assigned 0\% likelihood occur 4.9\% of the time (p-value<0.001). 
+    # INDIVIDUAL
+    fn_extreme_bins(df_indvl) 
+    
+    # Regs
+    idvl_calibration_regs <- fn_regress(df_indvl, calibration = TRUE)
+    
+    # AGGREGATE
     names(df_agg)[names(df_agg) == "p_agg"] <- "p" # For table
+    # Strong wisdom of the crowds:
+    # Highest bins Pr(.) 46.0% and occur 46.5% (p=0.90).
+    # “Border bins” in which people place 0% occur 0.3% of the time.
+    fn_extreme_bins(df_agg, aggregate = TRUE) 
+    
+    # Regs
     agg_calibration_regs <-
       fn_regress(df_agg, calibration = TRUE, cluster = "single")
     
@@ -165,4 +175,8 @@ fn_calibration_analysis <-
       width = 7,
       height = 3
     )
+    
+
+    
+
   }

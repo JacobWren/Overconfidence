@@ -16,15 +16,16 @@ fn_regress <-
            error_as_dv = TRUE,
            disagreement = FALSE,
            calibration = FALSE,
-           use_dummies = FALSE) {
+           use_dummies = FALSE,
+           extreme_bins = FALSE) {
     if (calibration) {
       if (case == "SPF") {
         dep_var <- "p_empirical"
         ind_var <- "p"
-        # if (cluster == "single") { # => in the aggregate
-        #   dep_var <- "p_agg_empirical"
-        #   ind_var <- "p_agg"
-        # }
+        if (extreme_bins) {
+          dep_var <- "extreme_bin_diff"
+          ind_var <- "1"
+        }
       } else {
         names(data)[names(data) == "pic"] <- "event"
         # Initialize variables
@@ -101,7 +102,7 @@ fn_regress <-
     # Return just the model.
     if (simple_reg) {
       fn_help(lm_model, data)
-      print("Averaged over dataSet/time_to_resolution")
+      print("Averaged over data_set/time_to_resolution")
       print(summary(lm_model))
       print(
         "________________________________________________________________________________________________"
@@ -142,8 +143,8 @@ fn_regress <-
     coefficients <- coef(lm_model)
     
     # Display the model summary with robust standard errors
-    if (!use_dummies) { 
-      # We already see this in the calibration binned scatter plot.
+    if (!use_dummies && !extreme_bins) { 
+      # We already see this in the calibration binned scatter plot (first condition in mind).
       fn_help(lm_model, data)
       cat("Coefficients:\n")
       print(coefficients)
@@ -171,8 +172,11 @@ fn_regress <-
         robust_se = robust_se
       )
         if (calibration) {
-          result$p_value_p <- fn_wald_test(coefficients, robust_se, "p", hyp_value = 1)
           result$p_value_intercept <- fn_wald_test(coefficients, robust_se, "(Intercept)")
+          if (extreme_bins) {
+            return(unname(result$p_value_intercept))
+          }
+          result$p_value_p <- fn_wald_test(coefficients, robust_se, "p", hyp_value = 1)
         }
         else {
           result$p_value <- fn_wald_test(coefficients, robust_se, "disagreement_EV_minus_forecaster_i")
