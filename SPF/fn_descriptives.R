@@ -25,9 +25,7 @@ fn_descriptives <- function(data) {
   NAll <- nrow(data)
   
   # Display the summary
-  cat("****************\n")
-  cat("******** Data Description\n")
-  cat("****************\n\n")
+  cat("******** Data Description\n ********")
   cat("The longest running survey contains data for", NYears, "years.\n")
   cat(
     "There are 5 surveys for different variables (which have been run for different lengths of time), so the total

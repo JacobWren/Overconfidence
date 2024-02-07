@@ -1,7 +1,7 @@
 # Compute statistics.
 
 
-calculate_EV_and_var <- function(df, grpd_level, is_agg = FALSE) {
+fn_calculate_EV_and_var <- function(df, grpd_level, is_agg = FALSE) {
   # Individual forecaster or average forecaster?
   suffix <- if (is_agg)
     "_agg"

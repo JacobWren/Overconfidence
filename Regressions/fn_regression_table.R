@@ -8,7 +8,7 @@ fn_regression_table <-
            stack = FALSE) {
     file_path <- paste0("Tables/", table_name, ".tex")
     
-    # Create the regression table using stargazer
+    # Create the regression table using stargazer.
     reg_table <- stargazer(
       list(mod$model),
       type = "latex",

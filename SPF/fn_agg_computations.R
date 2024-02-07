@@ -40,7 +40,7 @@ fn_agg_computations <-
 
       # For a given event-time, what is the expected value and the variance of the aggregate?
       df_spf_agg_var <-
-        calculate_EV_and_var(df_spf_agg_var, "grpd_time_event", is_agg = TRUE)
+        fn_calculate_EV_and_var(df_spf_agg_var, "grpd_time_event", is_agg = TRUE)
       
       # What is our observation of this "aggregate" forecasters squared error from reality.
       # And how does that deviate from the predicted aggregate variance?
@@ -91,10 +91,10 @@ fn_agg_computations <-
         "\n"
       )
       options(digits = 7)
-      fn_help(model1, df_spf_agg_var)
+      fn_help(model1, df_spf_agg_var, "single")
       print(model1)
       cat("\n")
-      fn_help(model2, df_spf_agg_var)
+      fn_help(model2, df_spf_agg_var, "single")
       print(model2)
     }
     

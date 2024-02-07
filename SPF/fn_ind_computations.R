@@ -113,7 +113,7 @@ fn_ind_computations <- function(spf_micro_ind, pred_vars, smooth) {
     {
       # For a given time + event, what is the expected value / variance of a given forecaster?
       df_spf_micro <-
-        calculate_EV_and_var(df_spf_micro, "grpd_id_time_event")
+        fn_calculate_EV_and_var(df_spf_micro, "grpd_id_time_event")
     }
     
     # What is our observation of this forecasters squared error from reality.

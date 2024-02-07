@@ -71,7 +71,7 @@ fn_calibration_analysis <-
       )
     
     # Write the table to a .tex file
-    cat(calibration_table, file = "Results/calibration.tex")
+    cat(calibration_table, file = "Tables/calibration.tex")
     
     # Calibration: Plots
     names(df_agg)[names(df_agg) == "p"] <- "p_agg" # Command z.

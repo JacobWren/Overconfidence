@@ -122,5 +122,5 @@ fn_regression_analysis <-
       dep.var.caption = "",
       digits = 4
     )
-    cat(disagreement_table, file = "Results/disagreement.tex")
+    cat(disagreement_table, file = "Tables/disagreement.tex")
   }

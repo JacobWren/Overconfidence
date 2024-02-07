@@ -101,7 +101,7 @@ fn_regress <-
     
     # Return just the model.
     if (simple_reg) {
-      fn_help(lm_model, data)
+      fn_help(lm_model, data, cluster)
       print("Averaged over data_set/time_to_resolution")
       print(summary(lm_model))
       print(
@@ -145,7 +145,7 @@ fn_regress <-
     # Display the model summary with robust standard errors
     if (!use_dummies && !extreme_bins) { 
       # We already see this in the calibration binned scatter plot (first condition in mind).
-      fn_help(lm_model, data)
+      fn_help(lm_model, data, cluster)
       cat("Coefficients:\n")
       print(coefficients)
       cat("\nRobust Standard Errors:\n")

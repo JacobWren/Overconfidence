@@ -1,7 +1,14 @@
 # General helpers.
 
-fn_help <- function(model, dataset) {
+fn_help <- function(model, dataset, cluster) {
   # A function to extract and print variable names from the regression model.
+  
+  if (cluster == "single") {
+    print("Level: Aggregate \n")
+  }
+  else if (cluster == "double") {
+    print("Level: Individual \n")
+  }
   
   # Extracting model formula
   model_formula <- formula(model)
